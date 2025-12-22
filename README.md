@@ -189,7 +189,7 @@ This lab deploys a **Virtual WAN-centric architecture** with:
 ```bash
 # Clone the repository
 git clone https://github.com/Jamonygr/azure-network-lab.git
-cd azure-network-lab/infra
+cd azure-network-lab
 
 # Copy and edit variables
 cp terraform.tfvars.example terraform.tfvars
@@ -293,39 +293,38 @@ onprem_address_space = ["192.168.0.0/16"]
 azure-network-lab/
 ├── README.md                  # This documentation
 ├── LICENSE                    # MIT License
+├── main.tf                    # Main orchestration (12 phases)
+├── variables.tf               # Input variables
+├── outputs.tf                 # Output values
+├── locals.tf                  # Computed locals
+├── providers.tf               # Provider configuration
+├── terraform.tfvars           # Your configuration (gitignored)
+├── terraform.tfvars.example   # Example configuration
 │
-└── infra/                     # Terraform configuration
-    ├── main.tf                # Main orchestration (12 phases)
-    ├── variables.tf           # Input variables
-    ├── outputs.tf             # Output values
-    ├── locals.tf              # Computed locals
-    ├── providers.tf           # Provider configuration
-    ├── terraform.tfvars       # Your configuration (gitignored)
-    │
-    └── modules/               # Reusable modules
-        ├── application-gateway/
-        ├── bastion/
-        ├── dns-private-resolver/
-        ├── load-balancer/
-        ├── local-network-gateway/
-        ├── log-analytics/
-        ├── nat-gateway/
-        ├── nsg/
-        ├── private-dns-zone/
-        ├── private-endpoint/
-        ├── route-server/
-        ├── storage-account/
-        ├── vhub/
-        ├── vhub-connection/
-        ├── vhub-firewall/
-        ├── vhub-vpn-gateway/
-        ├── vm-windows/
-        ├── vm-windows-nva/
-        ├── vnet/
-        ├── vpn-connection/
-        ├── vpn-gateway/
-        ├── vpn-site/
-        └── vwan/
+└── modules/                   # Reusable modules
+    ├── application-gateway/
+    ├── bastion/
+    ├── dns-private-resolver/
+    ├── load-balancer/
+    ├── local-network-gateway/
+    ├── log-analytics/
+    ├── nat-gateway/
+    ├── nsg/
+    ├── private-dns-zone/
+    ├── private-endpoint/
+    ├── route-server/
+    ├── storage-account/
+    ├── vhub/
+    ├── vhub-connection/
+    ├── vhub-firewall/
+    ├── vhub-vpn-gateway/
+    ├── vm-windows/
+    ├── vm-windows-nva/
+    ├── vnet/
+    ├── vpn-connection/
+    ├── vpn-gateway/
+    ├── vpn-site/
+    └── vwan/
 ```
 
 ### Deployment Phases

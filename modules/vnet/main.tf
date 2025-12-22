@@ -27,4 +27,5 @@ resource "azurerm_subnet" "subnets" {
   }
 
   service_endpoints = each.value.service_endpoints
+  private_endpoint_network_policies = each.value.private_endpoint_network_policies
 }

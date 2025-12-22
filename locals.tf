@@ -33,6 +33,7 @@ locals {
       address_prefix    = "10.1.4.0/24"
       service_endpoints = []
       delegation        = null
+      private_endpoint_network_policies = "Disabled"
     }
     "DnsResolverInbound" = {
       address_prefix    = "10.1.5.0/28"

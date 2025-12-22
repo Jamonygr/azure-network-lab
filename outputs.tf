@@ -182,7 +182,7 @@ output "vm_spoke1_nva_private_ip" {
 output "connection_info" {
   description = "Summary of connection information"
   value = {
-    bastion_connect = var.deploy_bastion ? "Connect via Azure Portal → Bastion → ${module.bastion[0].name}" : "Bastion not deployed"
+    bastion_connect = var.deploy_bastion ? "Connect via Azure Portal -> Bastion -> ${module.bastion[0].name}" : "Bastion not deployed"
     vm_admin_user   = var.admin_username
     spoke1_vms      = [module.vm_spoke1_1.private_ip_address, module.vm_spoke1_2.private_ip_address]
     spoke1_nva      = module.vm_spoke1_nva.private_ip_address
