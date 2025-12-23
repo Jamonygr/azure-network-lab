@@ -144,6 +144,36 @@ module "vnet_onprem" {
   tags                = local.common_tags
 }
 
+# -----------------------------------------------------------------------------
+# VNet Peering: Spoke1 <-> Spoke2 (for Route Server testing)
+# -----------------------------------------------------------------------------
+
+resource "azurerm_virtual_network_peering" "spoke1_to_spoke2" {
+  count = var.deploy.route_server ? 1 : 0
+
+  name                         = "peer-spoke1-to-spoke2"
+  resource_group_name          = azurerm_resource_group.this.name
+  virtual_network_name         = module.vnet_spoke1.name
+  remote_virtual_network_id    = module.vnet_spoke2.id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit        = false
+  use_remote_gateways          = false
+}
+
+resource "azurerm_virtual_network_peering" "spoke2_to_spoke1" {
+  count = var.deploy.route_server ? 1 : 0
+
+  name                         = "peer-spoke2-to-spoke1"
+  resource_group_name          = azurerm_resource_group.this.name
+  virtual_network_name         = module.vnet_spoke2.name
+  remote_virtual_network_id    = module.vnet_spoke1.id
+  allow_virtual_network_access = true
+  allow_forwarded_traffic      = true
+  allow_gateway_transit        = false
+  use_remote_gateways          = false
+}
+
 # =============================================================================
 # PHASE 4: NETWORK SECURITY GROUPS (Before any VMs)
 # =============================================================================
