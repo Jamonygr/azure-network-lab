@@ -42,6 +42,7 @@ module "log_analytics" {
 # -----------------------------------------------------------------------------
 
 module "vwan" {
+  count  = var.deploy.vwan ? 1 : 0
   source = "./modules/vwan"
 
   name                = "vwan-${local.name_prefix}"
@@ -55,12 +56,13 @@ module "vwan" {
 # -----------------------------------------------------------------------------
 
 module "vhub" {
+  count  = var.deploy.vwan ? 1 : 0
   source = "./modules/vhub"
 
   name                = "vhub-${local.name_prefix}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  virtual_wan_id      = module.vwan.id
+  virtual_wan_id      = module.vwan[0].id
   address_prefix      = var.vhub_address_prefix
   tags                = local.common_tags
 }
@@ -70,13 +72,14 @@ module "vhub" {
 # -----------------------------------------------------------------------------
 
 module "vhub_firewall" {
+  count  = var.deploy.vwan && var.deploy.vhub_firewall ? 1 : 0
   source = "./modules/vhub-firewall"
 
   name                = "fw-vhub-${local.name_prefix}"
   policy_name         = "fwpol-${local.name_prefix}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  virtual_hub_id      = module.vhub.id
+  virtual_hub_id      = module.vhub[0].id
   tags                = local.common_tags
 }
 
@@ -85,12 +88,13 @@ module "vhub_firewall" {
 # -----------------------------------------------------------------------------
 
 module "vhub_vpn_gateway" {
+  count  = var.deploy.vwan && var.deploy.vpn ? 1 : 0
   source = "./modules/vhub-vpn-gateway"
 
   name                = "vpngw-vhub-${local.name_prefix}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  virtual_hub_id      = module.vhub.id
+  virtual_hub_id      = module.vhub[0].id
   scale_unit          = 1
   tags                = local.common_tags
 }
@@ -192,11 +196,11 @@ module "nsg_onprem" {
 # Note: Spoke1 cannot connect to vHub when Route Server is deployed
 # A VNet cannot have both a local gateway (Route Server) AND use remote gateways (vHub)
 module "vhub_connection_spoke1" {
-  count  = var.deploy_route_server ? 0 : 1  # Disable when Route Server is deployed
+  count  = var.deploy.vwan && !var.deploy.route_server ? 1 : 0  # Disable when Route Server is deployed
   source = "./modules/vhub-connection"
 
   name                      = "conn-spoke1-${local.name_prefix}"
-  virtual_hub_id            = module.vhub.id
+  virtual_hub_id            = module.vhub[0].id
   remote_virtual_network_id = module.vnet_spoke1.id
   internet_security_enabled = true
 
@@ -204,10 +208,11 @@ module "vhub_connection_spoke1" {
 }
 
 module "vhub_connection_spoke2" {
+  count  = var.deploy.vwan ? 1 : 0
   source = "./modules/vhub-connection"
 
   name                      = "conn-spoke2-${local.name_prefix}"
-  virtual_hub_id            = module.vhub.id
+  virtual_hub_id            = module.vhub[0].id
   remote_virtual_network_id = module.vnet_spoke2.id
   internet_security_enabled = true
 
@@ -223,6 +228,7 @@ module "vhub_connection_spoke2" {
 # -----------------------------------------------------------------------------
 
 module "vpn_gateway_onprem" {
+  count  = var.deploy.vpn ? 1 : 0
   source = "./modules/vpn-gateway"
 
   name                = "vpngw-onprem-${local.name_prefix}"
@@ -240,19 +246,20 @@ module "vpn_gateway_onprem" {
 # -----------------------------------------------------------------------------
 
 module "vpn_site_onprem" {
+  count  = var.deploy.vwan && var.deploy.vpn ? 1 : 0
   source = "./modules/vpn-site"
 
   name                = "site-onprem-${local.name_prefix}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  virtual_wan_id      = module.vwan.id
-  vpn_gateway_id      = module.vhub_vpn_gateway.id
+  virtual_wan_id      = module.vwan[0].id
+  vpn_gateway_id      = module.vhub_vpn_gateway[0].id
   address_cidrs       = var.onprem_address_space
-  vpn_device_ip       = module.vpn_gateway_onprem.public_ip_address
+  vpn_device_ip       = module.vpn_gateway_onprem[0].public_ip_address
   shared_key          = var.vpn_shared_key
   bgp_enabled         = true
   bgp_asn             = 65510
-  bgp_peering_address = module.vpn_gateway_onprem.bgp_peering_address
+  bgp_peering_address = module.vpn_gateway_onprem[0].bgp_peering_address
   tags                = local.common_tags
 
   depends_on = [module.vpn_gateway_onprem, module.vhub_vpn_gateway]
@@ -264,23 +271,25 @@ module "vpn_site_onprem" {
 
 # Get the vHub VPN Gateway BGP peering address
 data "azurerm_vpn_gateway" "vhub" {
-  name                = module.vhub_vpn_gateway.name
+  count               = var.deploy.vwan && var.deploy.vpn ? 1 : 0
+  name                = module.vhub_vpn_gateway[0].name
   resource_group_name = azurerm_resource_group.this.name
 
   depends_on = [module.vhub_vpn_gateway]
 }
 
 module "local_network_gateway_vhub" {
+  count  = var.deploy.vwan && var.deploy.vpn ? 1 : 0
   source = "./modules/local-network-gateway"
 
   name                = "lng-vhub-${local.name_prefix}"
   resource_group_name = azurerm_resource_group.this.name
   location            = azurerm_resource_group.this.location
-  gateway_address     = data.azurerm_vpn_gateway.vhub.bgp_settings[0].instance_0_bgp_peering_address[0].tunnel_ips[0]
+  gateway_address     = data.azurerm_vpn_gateway.vhub[0].bgp_settings[0].instance_0_bgp_peering_address[0].tunnel_ips[0]
   address_space       = ["10.0.0.0/8"]
   bgp_enabled         = true
   bgp_asn             = 65515
-  bgp_peering_address = data.azurerm_vpn_gateway.vhub.bgp_settings[0].instance_0_bgp_peering_address[0].default_ips[0]
+  bgp_peering_address = data.azurerm_vpn_gateway.vhub[0].bgp_settings[0].instance_0_bgp_peering_address[0].default_ips[0]
   tags                = local.common_tags
 
   depends_on = [module.vhub_vpn_gateway]
@@ -291,13 +300,14 @@ module "local_network_gateway_vhub" {
 # -----------------------------------------------------------------------------
 
 module "vpn_connection_onprem_to_vhub" {
+  count  = var.deploy.vwan && var.deploy.vpn ? 1 : 0
   source = "./modules/vpn-connection"
 
   name                       = "conn-onprem-to-vhub-${local.name_prefix}"
   resource_group_name        = azurerm_resource_group.this.name
   location                   = azurerm_resource_group.this.location
-  virtual_network_gateway_id = module.vpn_gateway_onprem.id
-  local_network_gateway_id   = module.local_network_gateway_vhub.id
+  virtual_network_gateway_id = module.vpn_gateway_onprem[0].id
+  local_network_gateway_id   = module.local_network_gateway_vhub[0].id
   shared_key                 = var.vpn_shared_key
   enable_bgp                 = true
   tags                       = local.common_tags
@@ -314,7 +324,7 @@ module "vpn_connection_onprem_to_vhub" {
 # =============================================================================
 
 module "route_server" {
-  count  = var.deploy_route_server ? 1 : 0
+  count  = var.deploy.route_server ? 1 : 0
   source = "./modules/route-server"
 
   name                             = "rs-${local.name_prefix}"
@@ -344,6 +354,7 @@ module "route_server" {
 # -----------------------------------------------------------------------------
 
 module "private_dns_zone_internal" {
+  count  = var.deploy.private_dns_zones ? 1 : 0
   source = "./modules/private-dns-zone"
 
   name                = "lab.internal"
@@ -358,6 +369,7 @@ module "private_dns_zone_internal" {
 }
 
 module "private_dns_zone_blob" {
+  count  = var.deploy.private_dns_zones ? 1 : 0
   source = "./modules/private-dns-zone"
 
   name                = "privatelink.blob.core.windows.net"
@@ -376,7 +388,7 @@ module "private_dns_zone_blob" {
 # -----------------------------------------------------------------------------
 
 module "dns_resolver" {
-  count  = var.deploy_dns_resolver ? 1 : 0
+  count  = var.deploy.dns_resolver ? 1 : 0
   source = "./modules/dns-private-resolver"
 
   name                = "dnspr-${local.name_prefix}"
@@ -397,6 +409,7 @@ module "dns_resolver" {
 # -----------------------------------------------------------------------------
 
 module "load_balancer" {
+  count  = var.deploy.load_balancer ? 1 : 0
   source = "./modules/load-balancer"
 
   name                = "ilb-${local.name_prefix}"
@@ -411,7 +424,7 @@ module "load_balancer" {
 # -----------------------------------------------------------------------------
 
 module "application_gateway" {
-  count  = var.deploy_application_gateway ? 1 : 0
+  count  = var.deploy.application_gateway ? 1 : 0
   source = "./modules/application-gateway"
 
   name                = "appgw-${local.name_prefix}"
@@ -430,7 +443,7 @@ module "application_gateway" {
 # -----------------------------------------------------------------------------
 
 module "nat_gateway" {
-  count  = var.deploy_nat_gateway ? 1 : 0
+  count  = var.deploy.nat_gateway ? 1 : 0
   source = "./modules/nat-gateway"
 
   name                = "nat-${local.name_prefix}"
@@ -447,7 +460,7 @@ module "nat_gateway" {
 # -----------------------------------------------------------------------------
 
 module "bastion" {
-  count  = var.deploy_bastion ? 1 : 0
+  count  = var.deploy.bastion ? 1 : 0
   source = "./modules/bastion"
 
   name                = "bas-${local.name_prefix}"
@@ -467,6 +480,7 @@ module "bastion" {
 # -----------------------------------------------------------------------------
 
 module "storage_account" {
+  count  = var.deploy.private_endpoint ? 1 : 0
   source = "./modules/storage-account"
 
   name_prefix                   = "st${var.project_name}"
@@ -481,15 +495,16 @@ module "storage_account" {
 # -----------------------------------------------------------------------------
 
 module "private_endpoint_storage" {
+  count  = var.deploy.private_endpoint && var.deploy.private_dns_zones ? 1 : 0
   source = "./modules/private-endpoint"
 
   name                           = "pe-storage-${local.name_prefix}"
   resource_group_name            = azurerm_resource_group.this.name
   location                       = azurerm_resource_group.this.location
   subnet_id                      = module.vnet_spoke1.subnet_ids["PrivateEndpointSubnet"]
-  private_connection_resource_id = module.storage_account.id
+  private_connection_resource_id = module.storage_account[0].id
   subresource_names              = ["blob"]
-  private_dns_zone_ids           = [module.private_dns_zone_blob.id]
+  private_dns_zone_ids           = [module.private_dns_zone_blob[0].id]
   tags                           = local.common_tags
 }
 
@@ -502,6 +517,7 @@ module "private_endpoint_storage" {
 # -----------------------------------------------------------------------------
 
 module "vm_spoke1_1" {
+  count  = var.deploy.spoke1_vms ? 1 : 0
   source = "./modules/vm-windows"
 
   name                 = "vm-spoke1-1"
@@ -511,14 +527,15 @@ module "vm_spoke1_1" {
   size                 = var.vm_size
   admin_username       = var.admin_username
   admin_password       = var.admin_password
-  join_lb_backend_pool = true
-  lb_backend_pool_id   = module.load_balancer.backend_pool_id
+  join_lb_backend_pool = var.deploy.load_balancer
+  lb_backend_pool_id   = var.deploy.load_balancer ? module.load_balancer[0].backend_pool_id : null
   tags                 = local.common_tags
 
   depends_on = [module.nsg_spoke1]
 }
 
 module "vm_spoke1_2" {
+  count  = var.deploy.spoke1_vms ? 1 : 0
   source = "./modules/vm-windows"
 
   name                 = "vm-spoke1-2"
@@ -528,8 +545,8 @@ module "vm_spoke1_2" {
   size                 = var.vm_size
   admin_username       = var.admin_username
   admin_password       = var.admin_password
-  join_lb_backend_pool = true
-  lb_backend_pool_id   = module.load_balancer.backend_pool_id
+  join_lb_backend_pool = var.deploy.load_balancer
+  lb_backend_pool_id   = var.deploy.load_balancer ? module.load_balancer[0].backend_pool_id : null
   tags                 = local.common_tags
 
   depends_on = [module.nsg_spoke1]
@@ -540,6 +557,7 @@ module "vm_spoke1_2" {
 # -----------------------------------------------------------------------------
 
 module "vm_spoke2_1" {
+  count  = var.deploy.spoke2_vms ? 1 : 0
   source = "./modules/vm-windows"
 
   name                = "vm-spoke2-1"
@@ -559,6 +577,7 @@ module "vm_spoke2_1" {
 # -----------------------------------------------------------------------------
 
 module "vm_onprem_1" {
+  count  = var.deploy.onprem_vms ? 1 : 0
   source = "./modules/vm-windows"
 
   name                = "vm-onprem-1"
@@ -582,6 +601,7 @@ module "vm_onprem_1" {
 # -----------------------------------------------------------------------------
 
 module "vm_onprem_nva" {
+  count  = var.deploy.nvas ? 1 : 0
   source = "./modules/vm-windows-nva"
 
   name                = "vm-onprem-nva"
@@ -602,6 +622,7 @@ module "vm_onprem_nva" {
 # -----------------------------------------------------------------------------
 
 module "vm_spoke1_nva" {
+  count  = var.deploy.nvas ? 1 : 0
   source = "./modules/vm-windows-nva"
 
   name                = "vm-spoke1-nva"
@@ -614,9 +635,9 @@ module "vm_spoke1_nva" {
   admin_password      = var.admin_password
   
   # BGP configuration for Route Server peering
-  bgp_asn           = var.deploy_route_server ? 65501 : null
-  route_server_ips  = var.deploy_route_server ? module.route_server[0].virtual_router_ips : []
-  advertised_routes = var.deploy_route_server ? ["10.100.0.0/16"] : []  # Example route to advertise
+  bgp_asn           = var.deploy.route_server ? 65501 : null
+  route_server_ips  = var.deploy.route_server ? module.route_server[0].virtual_router_ips : []
+  advertised_routes = var.deploy.route_server ? ["10.100.0.0/16"] : []  # Example route to advertise
   
   tags = local.common_tags
 

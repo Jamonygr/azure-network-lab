@@ -14,6 +14,39 @@ location = "eastus2"
 environment  = "lab"
 project_name = "az700"
 
+# =============================================================================
+# DEPLOYMENT CONTROL PANEL
+# =============================================================================
+# Toggle services on/off with a single object - set to false to reduce costs
+# =============================================================================
+
+deploy = {
+  # --- Core Networking ---
+  vwan          = true    # Virtual WAN
+  vpn           = true    # VPN Gateways (vHub + OnPrem)
+  vhub_firewall = true    # Azure Firewall in vHub (~$912/mo)
+
+  # --- DNS & Security ---
+  dns_resolver     = true    # DNS Private Resolver (~$180/mo)
+  private_dns_zones = true   # Private DNS Zones
+  route_server     = true    # Azure Route Server (~$360/mo)
+
+  # --- Load Balancing ---
+  application_gateway = true    # WAF v2 (~$250/mo)
+  load_balancer       = true    # Internal Load Balancer
+  nat_gateway         = true    # NAT Gateway (~$45/mo)
+  bastion             = false   # Azure Bastion (~$140/mo) - Costly!
+
+  # --- Storage & Private Endpoints ---
+  private_endpoint = true    # Private Endpoints + Storage Account
+
+  # --- Virtual Machines ---
+  spoke1_vms = true    # VMs in Spoke1 VNet
+  spoke2_vms = true    # VMs in Spoke2 VNet
+  onprem_vms = true    # VMs in OnPrem VNet
+  nvas       = true    # NVA VMs (Spoke1 + OnPrem)
+}
+
 # Network Address Spaces
 vhub_address_prefix  = "10.10.0.0/23"
 spoke1_address_space = ["10.1.0.0/16"]
@@ -29,13 +62,6 @@ vpn_shared_key = "CHANGE_ME_VPNSharedKey123!"  # Use a strong shared key
 
 # VM Size (smallest Windows-compatible size)
 vm_size = "Standard_B2s"
-
-# Feature Toggles (set to false to reduce costs)
-deploy_bastion             = false   # Azure Bastion (~$140/mo)
-deploy_application_gateway = true    # WAF v2 (~$250/mo)
-deploy_dns_resolver        = true    # DNS Resolver (~$180/mo)
-deploy_nat_gateway         = true    # NAT Gateway (~$45/mo)
-deploy_route_server        = true    # Route Server (~$360/mo)
 
 # Tags
 tags = {

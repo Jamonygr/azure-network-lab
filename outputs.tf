@@ -22,12 +22,12 @@ output "resource_group_location" {
 
 output "vwan_id" {
   description = "ID of the Virtual WAN"
-  value       = module.vwan.id
+  value       = var.deploy.vwan ? module.vwan[0].id : null
 }
 
 output "vhub_id" {
   description = "ID of the Virtual Hub"
-  value       = module.vhub.id
+  value       = var.deploy.vwan ? module.vhub[0].id : null
 }
 
 # -----------------------------------------------------------------------------
@@ -36,12 +36,12 @@ output "vhub_id" {
 
 output "firewall_private_ip" {
   description = "Private IP of the Azure Firewall in vHub"
-  value       = module.vhub_firewall.private_ip_address
+  value       = var.deploy.vwan && var.deploy.vhub_firewall ? module.vhub_firewall[0].private_ip_address : null
 }
 
 output "firewall_public_ips" {
   description = "Public IPs of the Azure Firewall in vHub"
-  value       = module.vhub_firewall.public_ip_addresses
+  value       = var.deploy.vwan && var.deploy.vhub_firewall ? module.vhub_firewall[0].public_ip_addresses : null
 }
 
 # -----------------------------------------------------------------------------
@@ -69,7 +69,7 @@ output "vnet_onprem_id" {
 
 output "onprem_vpn_gateway_public_ip" {
   description = "Public IP of the OnPrem VPN Gateway"
-  value       = module.vpn_gateway_onprem.public_ip_address
+  value       = var.deploy.vpn ? module.vpn_gateway_onprem[0].public_ip_address : null
 }
 
 # -----------------------------------------------------------------------------
@@ -78,27 +78,27 @@ output "onprem_vpn_gateway_public_ip" {
 
 output "vm_spoke1_1_private_ip" {
   description = "Private IP of VM in Spoke1"
-  value       = module.vm_spoke1_1.private_ip_address
+  value       = var.deploy.spoke1_vms ? module.vm_spoke1_1[0].private_ip_address : null
 }
 
 output "vm_spoke1_2_private_ip" {
   description = "Private IP of second VM in Spoke1"
-  value       = module.vm_spoke1_2.private_ip_address
+  value       = var.deploy.spoke1_vms ? module.vm_spoke1_2[0].private_ip_address : null
 }
 
 output "vm_spoke2_1_private_ip" {
   description = "Private IP of VM in Spoke2"
-  value       = module.vm_spoke2_1.private_ip_address
+  value       = var.deploy.spoke2_vms ? module.vm_spoke2_1[0].private_ip_address : null
 }
 
 output "vm_onprem_1_private_ip" {
   description = "Private IP of VM in OnPrem"
-  value       = module.vm_onprem_1.private_ip_address
+  value       = var.deploy.onprem_vms ? module.vm_onprem_1[0].private_ip_address : null
 }
 
 output "vm_onprem_nva_private_ip" {
   description = "Private IP of NVA VM in OnPrem"
-  value       = module.vm_onprem_nva.private_ip_address
+  value       = var.deploy.nvas ? module.vm_onprem_nva[0].private_ip_address : null
 }
 
 # -----------------------------------------------------------------------------
@@ -107,7 +107,7 @@ output "vm_onprem_nva_private_ip" {
 
 output "load_balancer_frontend_ip" {
   description = "Frontend IP of the Internal Load Balancer"
-  value       = module.load_balancer.frontend_ip_address
+  value       = var.deploy.load_balancer ? module.load_balancer[0].frontend_ip_address : null
 }
 
 # -----------------------------------------------------------------------------
@@ -116,7 +116,7 @@ output "load_balancer_frontend_ip" {
 
 output "application_gateway_public_ip" {
   description = "Public IP of the Application Gateway"
-  value       = var.deploy_application_gateway ? module.application_gateway[0].public_ip_address : null
+  value       = var.deploy.application_gateway ? module.application_gateway[0].public_ip_address : null
 }
 
 # -----------------------------------------------------------------------------
@@ -125,7 +125,7 @@ output "application_gateway_public_ip" {
 
 output "bastion_dns_name" {
   description = "DNS name of Azure Bastion"
-  value       = var.deploy_bastion ? module.bastion[0].dns_name : null
+  value       = var.deploy.bastion ? module.bastion[0].dns_name : null
 }
 
 # -----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ output "bastion_dns_name" {
 
 output "dns_resolver_inbound_ip" {
   description = "Inbound IP of the DNS Private Resolver"
-  value       = var.deploy_dns_resolver ? module.dns_resolver[0].inbound_endpoint_ip : null
+  value       = var.deploy.dns_resolver ? module.dns_resolver[0].inbound_endpoint_ip : null
 }
 
 # -----------------------------------------------------------------------------
@@ -143,12 +143,12 @@ output "dns_resolver_inbound_ip" {
 
 output "storage_account_name" {
   description = "Name of the storage account"
-  value       = module.storage_account.name
+  value       = var.deploy.private_endpoint ? module.storage_account[0].name : null
 }
 
 output "private_endpoint_storage_ip" {
   description = "Private IP of the storage Private Endpoint"
-  value       = module.private_endpoint_storage.private_ip_address
+  value       = var.deploy.private_endpoint && var.deploy.private_dns_zones ? module.private_endpoint_storage[0].private_ip_address : null
 }
 
 # -----------------------------------------------------------------------------
@@ -157,22 +157,22 @@ output "private_endpoint_storage_ip" {
 
 output "route_server_id" {
   description = "ID of the Azure Route Server"
-  value       = var.deploy_route_server ? module.route_server[0].id : null
+  value       = var.deploy.route_server ? module.route_server[0].id : null
 }
 
 output "route_server_virtual_router_asn" {
   description = "ASN of the Azure Route Server"
-  value       = var.deploy_route_server ? module.route_server[0].virtual_router_asn : null
+  value       = var.deploy.route_server ? module.route_server[0].virtual_router_asn : null
 }
 
 output "route_server_virtual_router_ips" {
   description = "BGP peering IPs of the Azure Route Server"
-  value       = var.deploy_route_server ? module.route_server[0].virtual_router_ips : null
+  value       = var.deploy.route_server ? module.route_server[0].virtual_router_ips : null
 }
 
 output "vm_spoke1_nva_private_ip" {
   description = "Private IP of NVA VM in Spoke1"
-  value       = module.vm_spoke1_nva.private_ip_address
+  value       = var.deploy.nvas ? module.vm_spoke1_nva[0].private_ip_address : null
 }
 
 # -----------------------------------------------------------------------------
@@ -182,14 +182,14 @@ output "vm_spoke1_nva_private_ip" {
 output "connection_info" {
   description = "Summary of connection information"
   value = {
-    bastion_connect = var.deploy_bastion ? "Connect via Azure Portal -> Bastion -> ${module.bastion[0].name}" : "Bastion not deployed"
+    bastion_connect = var.deploy.bastion ? "Connect via Azure Portal -> Bastion -> ${module.bastion[0].name}" : "Bastion not deployed"
     vm_admin_user   = var.admin_username
-    spoke1_vms      = [module.vm_spoke1_1.private_ip_address, module.vm_spoke1_2.private_ip_address]
-    spoke1_nva      = module.vm_spoke1_nva.private_ip_address
-    spoke2_vms      = [module.vm_spoke2_1.private_ip_address]
-    onprem_vms      = [module.vm_onprem_1.private_ip_address, module.vm_onprem_nva.private_ip_address]
-    route_server    = var.deploy_route_server ? {
-      asn     = module.route_server[0].virtual_router_asn
+    spoke1_vms      = var.deploy.spoke1_vms ? [module.vm_spoke1_1[0].private_ip_address, module.vm_spoke1_2[0].private_ip_address] : []
+    spoke1_nva      = var.deploy.nvas ? module.vm_spoke1_nva[0].private_ip_address : null
+    spoke2_vms      = var.deploy.spoke2_vms ? [module.vm_spoke2_1[0].private_ip_address] : []
+    onprem_vms      = var.deploy.onprem_vms && var.deploy.nvas ? [module.vm_onprem_1[0].private_ip_address, module.vm_onprem_nva[0].private_ip_address] : (var.deploy.onprem_vms ? [module.vm_onprem_1[0].private_ip_address] : [])
+    route_server    = var.deploy.route_server ? {
+      asn      = module.route_server[0].virtual_router_asn
       peer_ips = module.route_server[0].virtual_router_ips
     } : null
   }
