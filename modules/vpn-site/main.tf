@@ -1,7 +1,7 @@
 resource "azurerm_vpn_site" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
   virtual_wan_id      = var.virtual_wan_id
 
   address_cidrs = var.address_cidrs
@@ -16,7 +16,7 @@ resource "azurerm_vpn_site" "this" {
     }
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_vpn_gateway_connection" "this" {

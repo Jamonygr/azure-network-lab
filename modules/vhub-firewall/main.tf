@@ -1,7 +1,7 @@
 resource "azurerm_firewall_policy" "this" {
   name                = var.policy_name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
   sku                 = "Standard"
 
   threat_intelligence_mode = "Alert"
@@ -10,7 +10,7 @@ resource "azurerm_firewall_policy" "this" {
     proxy_enabled = true
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "this" {
@@ -69,7 +69,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
 
 resource "azurerm_firewall" "this" {
   name                = var.name
-  location            = var.location
+  location            = var.ctx.location
   resource_group_name = var.resource_group_name
   sku_name            = "AZFW_Hub"
   sku_tier            = "Standard"
@@ -80,7 +80,7 @@ resource "azurerm_firewall" "this" {
     public_ip_count = 1
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_virtual_hub_routing_intent" "this" {

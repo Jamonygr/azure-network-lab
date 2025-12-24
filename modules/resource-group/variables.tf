@@ -1,16 +1,11 @@
 variable "name" {
-  description = "Name of the Virtual WAN"
+  description = "Name of the resource group"
   type        = string
 
   validation {
     condition     = can(regex("^[a-z0-9-]+$", var.name))
-    error_message = "Virtual WAN name must be lowercase letters, numbers, and hyphens only."
+    error_message = "Resource group name must be lowercase letters, numbers, and hyphens only."
   }
-}
-
-variable "resource_group_name" {
-  description = "Name of the resource group"
-  type        = string
 }
 
 variable "ctx" {

@@ -1,7 +1,7 @@
 resource "azurerm_virtual_network_gateway_connection" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
 
   type                       = "IPsec"
   virtual_network_gateway_id = var.virtual_network_gateway_id
@@ -11,5 +11,5 @@ resource "azurerm_virtual_network_gateway_connection" "this" {
   enable_bgp          = var.enable_bgp
   connection_protocol = "IKEv2"
 
-  tags = var.tags
+  tags = var.ctx.tags
 }

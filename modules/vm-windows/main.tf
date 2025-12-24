@@ -1,7 +1,7 @@
 resource "azurerm_network_interface" "this" {
   name                = "${var.name}-nic"
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
 
   ip_configuration {
     name                          = "internal"
@@ -9,13 +9,13 @@ resource "azurerm_network_interface" "this" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_windows_virtual_machine" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
   size                = var.size
   admin_username      = var.admin_username
   admin_password      = var.admin_password
@@ -34,7 +34,7 @@ resource "azurerm_windows_virtual_machine" "this" {
     version   = "latest"
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_network_interface_backend_address_pool_association" "this" {

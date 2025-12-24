@@ -1,15 +1,15 @@
 variable "name" {
   description = "Name of the Virtual Hub"
   type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]+$", var.name))
+    error_message = "Virtual Hub name must be lowercase letters, numbers, and hyphens only."
+  }
 }
 
 variable "resource_group_name" {
   description = "Name of the resource group"
-  type        = string
-}
-
-variable "location" {
-  description = "Azure region"
   type        = string
 }
 
@@ -23,8 +23,11 @@ variable "address_prefix" {
   type        = string
 }
 
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-  default     = {}
+variable "ctx" {
+  description = "Context for location and tags."
+  type = object({
+    project  = string
+    location = string
+    tags     = map(string)
+  })
 }

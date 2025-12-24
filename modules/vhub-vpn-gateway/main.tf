@@ -1,6 +1,6 @@
 resource "azurerm_vpn_gateway" "this" {
   name                = var.name
-  location            = var.location
+  location            = var.ctx.location
   resource_group_name = var.resource_group_name
   virtual_hub_id      = var.virtual_hub_id
 
@@ -11,5 +11,5 @@ resource "azurerm_vpn_gateway" "this" {
     peer_weight = 0
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }

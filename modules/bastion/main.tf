@@ -1,18 +1,18 @@
 resource "azurerm_public_ip" "bastion" {
   name                = "${var.name}-pip"
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_bastion_host" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
 
   sku                    = var.sku
   copy_paste_enabled     = true
@@ -27,5 +27,5 @@ resource "azurerm_bastion_host" "this" {
     public_ip_address_id = azurerm_public_ip.bastion.id
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }

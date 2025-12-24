@@ -147,11 +147,11 @@ This lab deploys a **Virtual WAN-centric architecture** with:
 
 | Component | Variable | Default |
 |-----------|----------|---------|
-| Azure Bastion | `deploy_bastion` | `false` |
-| Application Gateway (WAF) | `deploy_application_gateway` | `true` |
-| DNS Private Resolver | `deploy_dns_resolver` | `true` |
-| NAT Gateway | `deploy_nat_gateway` | `true` |
-| Route Server | `deploy_route_server` | `true` |
+| Azure Bastion | `deploy.bastion` | `false` |
+| Application Gateway (WAF) | `deploy.application_gateway` | `true` |
+| DNS Private Resolver | `deploy.dns_resolver` | `true` |
+| NAT Gateway | `deploy.nat_gateway` | `true` |
+| Route Server | `deploy.route_server` | `true` |
 
 ---
 
@@ -217,14 +217,30 @@ Control what gets deployed to optimize costs:
 # terraform.tfvars
 
 # Feature Toggles
-deploy_bastion             = false  # Azure Bastion (~$140/mo)
-deploy_application_gateway = true   # WAF v2 (~$250/mo)
-deploy_dns_resolver        = true   # DNS Resolver (~$180/mo)
-deploy_nat_gateway         = true   # NAT Gateway (~$45/mo)
-deploy_route_server        = true   # Route Server (~$360/mo)
+deploy = {
+  vwan          = true   # Virtual WAN
+  vhub_firewall = true   # Azure Firewall in vHub (~$912/mo)
+  vpn           = false  # VPN Gateways (vHub + OnPrem)
+  route_server  = true   # Azure Route Server (~$360/mo)
+
+  dns_resolver      = true   # DNS Private Resolver (~$180/mo)
+  private_dns_zones = true   # Private DNS Zones
+  bastion           = false  # Azure Bastion (~$140/mo)
+
+  application_gateway = true  # WAF v2 (~$250/mo)
+  load_balancer       = true  # Internal Load Balancer
+  nat_gateway         = true  # NAT Gateway (~$45/mo)
+
+  private_endpoint = true   # Storage Account + Private Endpoint
+
+  spoke1_vms = true   # VMs in Spoke1 VNet
+  spoke2_vms = true   # VMs in Spoke2 VNet
+  onprem_vms = false  # VMs in OnPrem VNet
+  nvas       = true   # Network Virtual Appliances (RRAS/BGP)
+}
 ```
 
-> **Note**: When `deploy_route_server = true`, Spoke1 does NOT connect to vHub (Azure limitation: VNet cannot have both Route Server and vHub remote gateway).
+> **Note**: When `deploy.route_server = true`, Spoke1 does NOT connect to vHub (Azure limitation: VNet cannot have both Route Server and vHub remote gateway).
 
 ---
 
@@ -242,10 +258,15 @@ admin_password  = "YourSecureP@ssw0rd!"
 vpn_shared_key  = "YourVPNSharedKey123!"
 
 # Optional
-location     = "eastus2"
-environment  = "lab"
-project_name = "az700"
-vm_size      = "Standard_B2s"
+ctx = {
+  project  = "az700-lab"
+  location = "eastus2"
+  tags = {
+    Environment = "lab"
+    Project     = "az700"
+  }
+}
+vm_size = "Standard_B2s"
 ```
 
 ### Network Configuration
@@ -293,10 +314,11 @@ onprem_address_space = ["192.168.0.0/16"]
 azure-network-lab/
 ├── README.md                  # This documentation
 ├── LICENSE                    # MIT License
-├── main.tf                    # Main orchestration (12 phases)
+├── main.tf                    # Root orchestration (lab only)
 ├── variables.tf               # Input variables
 ├── outputs.tf                 # Output values
 ├── locals.tf                  # Computed locals
+├── moved.tf                  # State move declarations
 ├── providers.tf               # Provider configuration
 ├── terraform.tfvars           # Your configuration (gitignored)
 ├── terraform.tfvars.example   # Example configuration
@@ -312,8 +334,10 @@ azure-network-lab/
     ├── nsg/
     ├── private-dns-zone/
     ├── private-endpoint/
+    ├── resource-group/
     ├── route-server/
     ├── storage-account/
+    ├── tags/
     ├── vhub/
     ├── vhub-connection/
     ├── vhub-firewall/
@@ -321,6 +345,7 @@ azure-network-lab/
     ├── vm-windows/
     ├── vm-windows-nva/
     ├── vnet/
+    ├── vnet-peering/
     ├── vpn-connection/
     ├── vpn-gateway/
     ├── vpn-site/

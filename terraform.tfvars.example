@@ -1,71 +1,50 @@
 # =============================================================================
-# AZ-700 Lab - Variable Values
-# =============================================================================
-# Copy this file to terraform.tfvars and update the values for your environment
+# AZ-700 Lab - Example Variable Values (single environment)
 # =============================================================================
 
-# Your Azure Subscription ID
-subscription_id = "00000000-0000-0000-0000-000000000000"  # Replace with your subscription ID
+subscription_id = "<subscription-id>"
 
-# Azure Region
-location = "eastus2"
-
-# Project naming
-environment  = "lab"
-project_name = "az700"
-
-# =============================================================================
-# DEPLOYMENT CONTROL PANEL
-# =============================================================================
-# Toggle services on/off with a single object - set to false to reduce costs
-# =============================================================================
-
-deploy = {
-  # --- Core Networking ---
-  vwan          = true    # Virtual WAN
-  vpn           = true    # VPN Gateways (vHub + OnPrem)
-  vhub_firewall = true    # Azure Firewall in vHub (~$912/mo)
-
-  # --- DNS & Security ---
-  dns_resolver     = true    # DNS Private Resolver (~$180/mo)
-  private_dns_zones = true   # Private DNS Zones
-  route_server     = true    # Azure Route Server (~$360/mo)
-
-  # --- Load Balancing ---
-  application_gateway = true    # WAF v2 (~$250/mo)
-  load_balancer       = true    # Internal Load Balancer
-  nat_gateway         = true    # NAT Gateway (~$45/mo)
-  bastion             = false   # Azure Bastion (~$140/mo) - Costly!
-
-  # --- Storage & Private Endpoints ---
-  private_endpoint = true    # Private Endpoints + Storage Account
-
-  # --- Virtual Machines ---
-  spoke1_vms = true    # VMs in Spoke1 VNet
-  spoke2_vms = true    # VMs in Spoke2 VNet
-  onprem_vms = true    # VMs in OnPrem VNet
-  nvas       = true    # NVA VMs (Spoke1 + OnPrem)
+ctx = {
+  project  = "az700-lab"
+  location = "eastus2"
+  tags = {
+    Owner       = "Your Name"
+    CostCenter  = "Training"
+    Environment = "lab"
+    Project     = "az700"
+  }
 }
 
-# Network Address Spaces
+deploy = {
+  vwan          = true
+  vpn           = false
+  vhub_firewall = true
+
+  dns_resolver      = true
+  private_dns_zones = true
+  route_server      = true
+
+  application_gateway = false
+  load_balancer       = true
+  nat_gateway         = true
+  bastion             = false
+
+  private_endpoint = true
+
+  spoke1_vms = true
+  spoke2_vms = true
+  onprem_vms = false
+  nvas       = true
+}
+
 vhub_address_prefix  = "10.10.0.0/23"
 spoke1_address_space = ["10.1.0.0/16"]
 spoke2_address_space = ["10.2.0.0/16"]
 onprem_address_space = ["192.168.0.0/16"]
 
-# VM Credentials - CHANGE THESE!
 admin_username = "azureadmin"
-admin_password = "CHANGE_ME_SecureP@ssw0rd!"  # Must be 12+ chars with complexity
+admin_password = "<secure-password>"
 
-# VPN Shared Key - CHANGE THIS!
-vpn_shared_key = "CHANGE_ME_VPNSharedKey123!"  # Use a strong shared key
+vpn_shared_key = "<shared-key>"
 
-# VM Size (smallest Windows-compatible size)
-vm_size = "Standard_B2s"
-
-# Tags
-tags = {
-  Owner       = "Your Name"
-  CostCenter  = "Training"
-  Environment = "Lab"
-}
+vm_size = "Standard_B1ms"

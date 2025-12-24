@@ -1,7 +1,7 @@
 resource "azurerm_lb" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
   sku                 = "Standard"
 
   frontend_ip_configuration {
@@ -10,7 +10,7 @@ resource "azurerm_lb" "this" {
     private_ip_address_allocation = "Dynamic"
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_lb_backend_address_pool" "this" {

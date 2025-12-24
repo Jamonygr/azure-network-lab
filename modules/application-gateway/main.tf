@@ -1,18 +1,18 @@
 resource "azurerm_public_ip" "this" {
   name                = "${var.name}-pip"
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = ["1", "2", "3"]
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_application_gateway" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
 
   sku {
     name     = var.sku_name
@@ -73,5 +73,5 @@ resource "azurerm_application_gateway" "this" {
     }
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }

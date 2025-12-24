@@ -1,7 +1,7 @@
 resource "azurerm_private_endpoint" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
   subnet_id           = var.subnet_id
 
   private_service_connection {
@@ -19,5 +19,5 @@ resource "azurerm_private_endpoint" "this" {
     }
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }

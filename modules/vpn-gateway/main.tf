@@ -6,18 +6,18 @@ locals {
 resource "azurerm_public_ip" "this" {
   name                = "${var.name}-pip"
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = local.is_az_sku ? ["1", "2", "3"] : null
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_virtual_network_gateway" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
 
   type     = "Vpn"
   vpn_type = "RouteBased"
@@ -40,5 +40,5 @@ resource "azurerm_virtual_network_gateway" "this" {
     }
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }

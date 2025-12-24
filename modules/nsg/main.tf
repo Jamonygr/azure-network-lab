@@ -1,9 +1,9 @@
 resource "azurerm_network_security_group" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_network_security_rule" "rules" {

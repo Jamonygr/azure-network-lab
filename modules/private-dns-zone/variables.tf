@@ -20,8 +20,11 @@ variable "registration_enabled" {
   default     = false
 }
 
-variable "tags" {
-  description = "Tags to apply to resources"
-  type        = map(string)
-  default     = {}
+variable "ctx" {
+  description = "Context for tags."
+  type = object({
+    project  = string
+    location = string
+    tags     = map(string)
+  })
 }

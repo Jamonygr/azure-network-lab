@@ -1,288 +1,162 @@
 # =============================================================================
-# AZ-700 Azure Networking Lab - Main Configuration
-# =============================================================================
-# This lab deploys a vWAN-centric networking environment for AZ-700 exam prep
-# Deployment order optimized for logical dependencies
+# AZ-700 Azure Networking Lab - Root Orchestrator (single environment)
 # =============================================================================
 
-# =============================================================================
-# PHASE 1: FOUNDATION
-# =============================================================================
+module "tags" {
+  source = "./modules/tags"
 
-# -----------------------------------------------------------------------------
-# Resource Group
-# -----------------------------------------------------------------------------
-
-resource "azurerm_resource_group" "this" {
-  name     = "rg-${local.name_prefix}"
-  location = var.location
-  tags     = local.common_tags
+  required_keys = local.required_tag_keys
+  defaults      = local.default_tags
+  extra         = var.ctx.tags
 }
 
-# -----------------------------------------------------------------------------
-# Log Analytics Workspace
-# -----------------------------------------------------------------------------
+module "resource_group" {
+  source = "./modules/resource-group"
+
+  name = "rg-${local.prefix}"
+  ctx  = local.ctx
+}
 
 module "log_analytics" {
   source = "./modules/log-analytics"
 
-  name                = "log-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  name                = "log-${local.prefix}"
+  resource_group_name = module.resource_group.name
   retention_in_days   = 30
-  tags                = local.common_tags
+  ctx                 = local.ctx
 }
 
 # =============================================================================
-# PHASE 2: VIRTUAL WAN CORE (Deploy early - takes longest)
+# Virtual WAN Core
 # =============================================================================
-
-# -----------------------------------------------------------------------------
-# Virtual WAN
-# -----------------------------------------------------------------------------
 
 module "vwan" {
   count  = var.deploy.vwan ? 1 : 0
   source = "./modules/vwan"
 
-  name                = "vwan-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  tags                = local.common_tags
+  name                = "vwan-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  ctx                 = local.ctx
 }
-
-# -----------------------------------------------------------------------------
-# Virtual Hub
-# -----------------------------------------------------------------------------
 
 module "vhub" {
   count  = var.deploy.vwan ? 1 : 0
   source = "./modules/vhub"
 
-  name                = "vhub-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  virtual_wan_id      = module.vwan[0].id
+  name                = "vhub-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  virtual_wan_id      = local.vwan_id
   address_prefix      = var.vhub_address_prefix
-  tags                = local.common_tags
+  ctx                 = local.ctx
 }
-
-# -----------------------------------------------------------------------------
-# Azure Firewall in vHub (Secured Hub) - Deploy early, takes ~10 mins
-# -----------------------------------------------------------------------------
 
 module "vhub_firewall" {
   count  = var.deploy.vwan && var.deploy.vhub_firewall ? 1 : 0
   source = "./modules/vhub-firewall"
 
-  name                = "fw-vhub-${local.name_prefix}"
-  policy_name         = "fwpol-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  virtual_hub_id      = module.vhub[0].id
-  tags                = local.common_tags
+  name                = "fw-vhub-${local.prefix}"
+  policy_name         = "fwpol-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  virtual_hub_id      = local.vhub_id
+  ctx                 = local.ctx
 }
-
-# -----------------------------------------------------------------------------
-# vHub VPN Gateway - Deploy early, takes ~30 mins
-# -----------------------------------------------------------------------------
 
 module "vhub_vpn_gateway" {
   count  = var.deploy.vwan && var.deploy.vpn ? 1 : 0
   source = "./modules/vhub-vpn-gateway"
 
-  name                = "vpngw-vhub-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  virtual_hub_id      = module.vhub[0].id
+  name                = "vpngw-vhub-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  virtual_hub_id      = local.vhub_id
   scale_unit          = 1
-  tags                = local.common_tags
+  ctx                 = local.ctx
 }
 
 # =============================================================================
-# PHASE 3: VIRTUAL NETWORKS
+# VNets, NSGs, and Peerings
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# Spoke VNets
-# -----------------------------------------------------------------------------
+module "vnet" {
+  for_each = local.vnets
+  source   = "./modules/vnet"
 
-module "vnet_spoke1" {
-  source = "./modules/vnet"
-
-  name                = "vnet-spoke1-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  address_space       = var.spoke1_address_space
-  subnets             = local.spoke1_subnets
-  tags                = local.common_tags
+  name                = each.value.name
+  resource_group_name = module.resource_group.name
+  address_space       = each.value.address_space
+  subnets             = each.value.subnets
+  ctx                 = local.ctx
 }
 
-module "vnet_spoke2" {
-  source = "./modules/vnet"
+module "vnet_peering" {
+  for_each = local.vnet_peerings_enabled
+  source   = "./modules/vnet-peering"
 
-  name                = "vnet-spoke2-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  address_space       = var.spoke2_address_space
-  subnets             = local.spoke2_subnets
-  tags                = local.common_tags
+  name                         = each.value.name
+  resource_group_name          = module.resource_group.name
+  virtual_network_name         = module.vnet[each.value.vnet_key].name
+  remote_virtual_network_id    = module.vnet[each.value.remote_vnet_key].id
+  allow_virtual_network_access = each.value.allow_virtual_network_access
+  allow_forwarded_traffic      = each.value.allow_forwarded_traffic
+  allow_gateway_transit        = each.value.allow_gateway_transit
+  use_remote_gateways          = each.value.use_remote_gateways
+  ctx                          = local.ctx
 }
 
-# -----------------------------------------------------------------------------
-# OnPrem VNet (Simulated)
-# -----------------------------------------------------------------------------
+module "nsg" {
+  for_each = local.nsgs
+  source   = "./modules/nsg"
 
-module "vnet_onprem" {
-  source = "./modules/vnet"
-
-  name                = "vnet-onprem-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  address_space       = var.onprem_address_space
-  subnets             = local.onprem_subnets
-  tags                = local.common_tags
-}
-
-# -----------------------------------------------------------------------------
-# VNet Peering: Spoke1 <-> Spoke2 (for Route Server testing)
-# -----------------------------------------------------------------------------
-
-resource "azurerm_virtual_network_peering" "spoke1_to_spoke2" {
-  count = var.deploy.route_server ? 1 : 0
-
-  name                         = "peer-spoke1-to-spoke2"
-  resource_group_name          = azurerm_resource_group.this.name
-  virtual_network_name         = module.vnet_spoke1.name
-  remote_virtual_network_id    = module.vnet_spoke2.id
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-  allow_gateway_transit        = false
-  use_remote_gateways          = false
-}
-
-resource "azurerm_virtual_network_peering" "spoke2_to_spoke1" {
-  count = var.deploy.route_server ? 1 : 0
-
-  name                         = "peer-spoke2-to-spoke1"
-  resource_group_name          = azurerm_resource_group.this.name
-  virtual_network_name         = module.vnet_spoke2.name
-  remote_virtual_network_id    = module.vnet_spoke1.id
-  allow_virtual_network_access = true
-  allow_forwarded_traffic      = true
-  allow_gateway_transit        = false
-  use_remote_gateways          = false
-}
-
-# =============================================================================
-# PHASE 4: NETWORK SECURITY GROUPS (Before any VMs)
-# =============================================================================
-
-module "nsg_spoke1" {
-  source = "./modules/nsg"
-
-  name                = "nsg-spoke1-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  name                = each.value.name
+  resource_group_name = module.resource_group.name
   subnet_associations = {
-    "Workload"  = module.vnet_spoke1.subnet_ids["Workload"]
-    "NvaSubnet" = module.vnet_spoke1.subnet_ids["NvaSubnet"]
+    for subnet_name in each.value.subnet_names :
+    subnet_name => module.vnet[each.value.vnet_key].subnet_ids[subnet_name]
   }
-  security_rules      = local.default_nsg_rules
-  tags                = local.common_tags
-}
-
-module "nsg_spoke2" {
-  source = "./modules/nsg"
-
-  name                = "nsg-spoke2-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_associations = {
-    "Workload" = module.vnet_spoke2.subnet_ids["Workload"]
-  }
-  security_rules      = local.default_nsg_rules
-  tags                = local.common_tags
-}
-
-module "nsg_onprem" {
-  source = "./modules/nsg"
-
-  name                = "nsg-onprem-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_associations = {
-    "Default"   = module.vnet_onprem.subnet_ids["Default"]
-    "NvaSubnet" = module.vnet_onprem.subnet_ids["NvaSubnet"]
-  }
-  security_rules      = local.onprem_nsg_rules
-  tags                = local.common_tags
+  security_rules = each.value.rules
+  ctx            = local.ctx
 }
 
 # =============================================================================
-# PHASE 5: VHUB CONNECTIONS (Spoke VNets to vHub)
+# vHub Connections
 # =============================================================================
 
-# Note: Spoke1 cannot connect to vHub when Route Server is deployed
-# A VNet cannot have both a local gateway (Route Server) AND use remote gateways (vHub)
-module "vhub_connection_spoke1" {
-  count  = var.deploy.vwan && !var.deploy.route_server ? 1 : 0  # Disable when Route Server is deployed
-  source = "./modules/vhub-connection"
+module "vhub_connection" {
+  for_each = local.vhub_connections_enabled
+  source   = "./modules/vhub-connection"
 
-  name                      = "conn-spoke1-${local.name_prefix}"
-  virtual_hub_id            = module.vhub[0].id
-  remote_virtual_network_id = module.vnet_spoke1.id
-  internet_security_enabled = true
-
-  depends_on = [module.vhub_firewall]
-}
-
-module "vhub_connection_spoke2" {
-  count  = var.deploy.vwan ? 1 : 0
-  source = "./modules/vhub-connection"
-
-  name                      = "conn-spoke2-${local.name_prefix}"
-  virtual_hub_id            = module.vhub[0].id
-  remote_virtual_network_id = module.vnet_spoke2.id
-  internet_security_enabled = true
+  name                      = each.value.name
+  virtual_hub_id            = local.vhub_id
+  remote_virtual_network_id = module.vnet[each.value.vnet_key].id
+  internet_security_enabled = each.value.internet_security_enabled
+  ctx                       = local.ctx
 
   depends_on = [module.vhub_firewall]
 }
 
 # =============================================================================
-# PHASE 6: VPN INFRASTRUCTURE
+# VPN Infrastructure
 # =============================================================================
-
-# -----------------------------------------------------------------------------
-# OnPrem VPN Gateway - Takes ~30 mins
-# -----------------------------------------------------------------------------
 
 module "vpn_gateway_onprem" {
   count  = var.deploy.vpn ? 1 : 0
   source = "./modules/vpn-gateway"
 
-  name                = "vpngw-onprem-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  gateway_subnet_id   = module.vnet_onprem.subnet_ids["GatewaySubnet"]
+  name                = "vpngw-onprem-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  gateway_subnet_id   = module.vnet["onprem"].subnet_ids["GatewaySubnet"]
   sku                 = "VpnGw1"
   enable_bgp          = true
   bgp_asn             = 65510
-  tags                = local.common_tags
+  ctx                 = local.ctx
 }
-
-# -----------------------------------------------------------------------------
-# VPN Site (represents OnPrem in vWAN)
-# -----------------------------------------------------------------------------
 
 module "vpn_site_onprem" {
   count  = var.deploy.vwan && var.deploy.vpn ? 1 : 0
   source = "./modules/vpn-site"
 
-  name                = "site-onprem-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  virtual_wan_id      = module.vwan[0].id
+  name                = "site-onprem-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  virtual_wan_id      = local.vwan_id
   vpn_gateway_id      = module.vhub_vpn_gateway[0].id
   address_cidrs       = var.onprem_address_space
   vpn_device_ip       = module.vpn_gateway_onprem[0].public_ip_address
@@ -290,57 +164,38 @@ module "vpn_site_onprem" {
   bgp_enabled         = true
   bgp_asn             = 65510
   bgp_peering_address = module.vpn_gateway_onprem[0].bgp_peering_address
-  tags                = local.common_tags
+  ctx                 = local.ctx
 
   depends_on = [module.vpn_gateway_onprem, module.vhub_vpn_gateway]
-}
-
-# -----------------------------------------------------------------------------
-# Local Network Gateway (for OnPrem to vHub connection)
-# -----------------------------------------------------------------------------
-
-# Get the vHub VPN Gateway BGP peering address
-data "azurerm_vpn_gateway" "vhub" {
-  count               = var.deploy.vwan && var.deploy.vpn ? 1 : 0
-  name                = module.vhub_vpn_gateway[0].name
-  resource_group_name = azurerm_resource_group.this.name
-
-  depends_on = [module.vhub_vpn_gateway]
 }
 
 module "local_network_gateway_vhub" {
   count  = var.deploy.vwan && var.deploy.vpn ? 1 : 0
   source = "./modules/local-network-gateway"
 
-  name                = "lng-vhub-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  gateway_address     = data.azurerm_vpn_gateway.vhub[0].bgp_settings[0].instance_0_bgp_peering_address[0].tunnel_ips[0]
+  name                = "lng-vhub-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  gateway_address     = local.vhub_gateway_tunnel_ip
   address_space       = ["10.0.0.0/8"]
   bgp_enabled         = true
   bgp_asn             = 65515
-  bgp_peering_address = data.azurerm_vpn_gateway.vhub[0].bgp_settings[0].instance_0_bgp_peering_address[0].default_ips[0]
-  tags                = local.common_tags
+  bgp_peering_address = local.vhub_gateway_default_ip
+  ctx                 = local.ctx
 
   depends_on = [module.vhub_vpn_gateway]
 }
-
-# -----------------------------------------------------------------------------
-# VPN Connection (OnPrem GW to Local Network Gateway)
-# -----------------------------------------------------------------------------
 
 module "vpn_connection_onprem_to_vhub" {
   count  = var.deploy.vwan && var.deploy.vpn ? 1 : 0
   source = "./modules/vpn-connection"
 
-  name                       = "conn-onprem-to-vhub-${local.name_prefix}"
-  resource_group_name        = azurerm_resource_group.this.name
-  location                   = azurerm_resource_group.this.location
+  name                       = "conn-onprem-to-vhub-${local.prefix}"
+  resource_group_name        = module.resource_group.name
   virtual_network_gateway_id = module.vpn_gateway_onprem[0].id
   local_network_gateway_id   = module.local_network_gateway_vhub[0].id
   shared_key                 = var.vpn_shared_key
   enable_bgp                 = true
-  tags                       = local.common_tags
+  ctx                        = local.ctx
 
   depends_on = [
     module.vpn_gateway_onprem,
@@ -350,326 +205,166 @@ module "vpn_connection_onprem_to_vhub" {
 }
 
 # =============================================================================
-# PHASE 7: ROUTE SERVER (Optional)
+# Route Server
 # =============================================================================
 
 module "route_server" {
   count  = var.deploy.route_server ? 1 : 0
   source = "./modules/route-server"
 
-  name                             = "rs-${local.name_prefix}"
-  resource_group_name              = azurerm_resource_group.this.name
-  location                         = azurerm_resource_group.this.location
-  subnet_id                        = module.vnet_spoke1.subnet_ids["RouteServerSubnet"]
+  name                             = "rs-${local.prefix}"
+  resource_group_name              = module.resource_group.name
+  subnet_id                        = module.vnet["spoke1"].subnet_ids["RouteServerSubnet"]
   branch_to_branch_traffic_enabled = true
-  
-  # BGP connection to NVA
-  bgp_connections = {
-    "spoke1-nva" = {
-      name     = "bgp-spoke1-nva"
-      peer_ip  = "10.1.8.10"
-      peer_asn = 65501
-    }
-  }
-
-  tags = local.common_tags
+  bgp_connections                  = local.route_server_bgp_connections
+  ctx                              = local.ctx
 }
 
 # =============================================================================
-# PHASE 8: DNS
+# DNS
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# Private DNS Zones
-# -----------------------------------------------------------------------------
+module "private_dns_zone" {
+  for_each = local.private_dns_zones_enabled
+  source   = "./modules/private-dns-zone"
 
-module "private_dns_zone_internal" {
-  count  = var.deploy.private_dns_zones ? 1 : 0
-  source = "./modules/private-dns-zone"
-
-  name                = "lab.internal"
-  resource_group_name = azurerm_resource_group.this.name
+  name                = each.value.name
+  resource_group_name = module.resource_group.name
   virtual_network_links = {
-    "spoke1" = module.vnet_spoke1.id
-    "spoke2" = module.vnet_spoke2.id
-    "onprem" = module.vnet_onprem.id
+    for key in local.vnet_link_keys :
+    key => module.vnet[key].id
   }
-  registration_enabled = true
-  tags                 = local.common_tags
+  registration_enabled = each.value.registration_enabled
+  ctx                  = local.ctx
 }
-
-module "private_dns_zone_blob" {
-  count  = var.deploy.private_dns_zones ? 1 : 0
-  source = "./modules/private-dns-zone"
-
-  name                = "privatelink.blob.core.windows.net"
-  resource_group_name = azurerm_resource_group.this.name
-  virtual_network_links = {
-    "spoke1" = module.vnet_spoke1.id
-    "spoke2" = module.vnet_spoke2.id
-    "onprem" = module.vnet_onprem.id
-  }
-  registration_enabled = false
-  tags                 = local.common_tags
-}
-
-# -----------------------------------------------------------------------------
-# DNS Private Resolver (Optional)
-# -----------------------------------------------------------------------------
 
 module "dns_resolver" {
   count  = var.deploy.dns_resolver ? 1 : 0
   source = "./modules/dns-private-resolver"
 
-  name                = "dnspr-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  virtual_network_id  = module.vnet_spoke1.id
-  inbound_subnet_id   = module.vnet_spoke1.subnet_ids["DnsResolverInbound"]
-  outbound_subnet_id  = module.vnet_spoke1.subnet_ids["DnsResolverOutbound"]
-  tags                = local.common_tags
+  name                = "dnspr-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  virtual_network_id  = module.vnet["spoke1"].id
+  inbound_subnet_id   = module.vnet["spoke1"].subnet_ids["DnsResolverInbound"]
+  outbound_subnet_id  = module.vnet["spoke1"].subnet_ids["DnsResolverOutbound"]
+  ctx                 = local.ctx
 }
 
 # =============================================================================
-# PHASE 9: COMPUTE SUPPORT SERVICES
+# Compute Support Services
 # =============================================================================
-
-# -----------------------------------------------------------------------------
-# Internal Load Balancer
-# -----------------------------------------------------------------------------
 
 module "load_balancer" {
   count  = var.deploy.load_balancer ? 1 : 0
   source = "./modules/load-balancer"
 
-  name                = "ilb-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_id           = module.vnet_spoke1.subnet_ids["LoadBalancerSubnet"]
-  tags                = local.common_tags
+  name                = "ilb-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  subnet_id           = module.vnet["spoke1"].subnet_ids["LoadBalancerSubnet"]
+  ctx                 = local.ctx
 }
-
-# -----------------------------------------------------------------------------
-# Application Gateway (Optional)
-# -----------------------------------------------------------------------------
 
 module "application_gateway" {
   count  = var.deploy.application_gateway ? 1 : 0
   source = "./modules/application-gateway"
 
-  name                = "appgw-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_id           = module.vnet_spoke1.subnet_ids["AppGwSubnet"]
+  name                = "appgw-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  subnet_id           = module.vnet["spoke1"].subnet_ids["AppGwSubnet"]
   sku_name            = "WAF_v2"
   sku_tier            = "WAF_v2"
   capacity            = 1
   waf_enabled         = true
-  tags                = local.common_tags
+  ctx                 = local.ctx
 }
-
-# -----------------------------------------------------------------------------
-# NAT Gateway (Optional)
-# -----------------------------------------------------------------------------
 
 module "nat_gateway" {
   count  = var.deploy.nat_gateway ? 1 : 0
   source = "./modules/nat-gateway"
 
-  name                = "nat-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
+  name                = "nat-${local.prefix}"
+  resource_group_name = module.resource_group.name
   subnet_associations = {
-    "Workload" = module.vnet_spoke1.subnet_ids["Workload"]
+    "Workload" = module.vnet["spoke1"].subnet_ids["Workload"]
   }
-  tags                = local.common_tags
+  ctx = local.ctx
 }
-
-# -----------------------------------------------------------------------------
-# Azure Bastion (Optional)
-# -----------------------------------------------------------------------------
 
 module "bastion" {
   count  = var.deploy.bastion ? 1 : 0
   source = "./modules/bastion"
 
-  name                = "bas-${local.name_prefix}"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_id           = module.vnet_spoke1.subnet_ids["AzureBastionSubnet"]
+  name                = "bas-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  subnet_id           = module.vnet["spoke1"].subnet_ids["AzureBastionSubnet"]
   sku                 = "Basic"
-  tags                = local.common_tags
+  ctx                 = local.ctx
 }
 
 # =============================================================================
-# PHASE 10: PRIVATE ENDPOINTS
+# Private Endpoints
 # =============================================================================
-
-# -----------------------------------------------------------------------------
-# Storage Account (for Private Endpoint demo)
-# -----------------------------------------------------------------------------
 
 module "storage_account" {
   count  = var.deploy.private_endpoint ? 1 : 0
   source = "./modules/storage-account"
 
-  name_prefix                   = "st${var.project_name}"
-  resource_group_name           = azurerm_resource_group.this.name
-  location                      = azurerm_resource_group.this.location
+  name_prefix                   = local.storage_account_name_prefix
+  resource_group_name           = module.resource_group.name
   public_network_access_enabled = false
-  tags                          = local.common_tags
+  allow_public_network_access   = false
+  ctx                           = local.ctx
 }
-
-# -----------------------------------------------------------------------------
-# Private Endpoint for Storage
-# -----------------------------------------------------------------------------
 
 module "private_endpoint_storage" {
   count  = var.deploy.private_endpoint && var.deploy.private_dns_zones ? 1 : 0
   source = "./modules/private-endpoint"
 
-  name                           = "pe-storage-${local.name_prefix}"
-  resource_group_name            = azurerm_resource_group.this.name
-  location                       = azurerm_resource_group.this.location
-  subnet_id                      = module.vnet_spoke1.subnet_ids["PrivateEndpointSubnet"]
+  name                           = "pe-storage-${local.prefix}"
+  resource_group_name            = module.resource_group.name
+  subnet_id                      = module.vnet["spoke1"].subnet_ids["PrivateEndpointSubnet"]
   private_connection_resource_id = module.storage_account[0].id
   subresource_names              = ["blob"]
-  private_dns_zone_ids           = [module.private_dns_zone_blob[0].id]
-  tags                           = local.common_tags
+  private_dns_zone_ids           = var.deploy.private_dns_zones ? [module.private_dns_zone["blob"].id] : []
+  ctx                            = local.ctx
 }
 
 # =============================================================================
-# PHASE 11: VIRTUAL MACHINES
+# Virtual Machines
 # =============================================================================
 
-# -----------------------------------------------------------------------------
-# Spoke1 VMs (with Load Balancer)
-# -----------------------------------------------------------------------------
+module "vm_windows" {
+  for_each = local.vm_windows_enabled
+  source   = "./modules/vm-windows"
 
-module "vm_spoke1_1" {
-  count  = var.deploy.spoke1_vms ? 1 : 0
-  source = "./modules/vm-windows"
-
-  name                 = "vm-spoke1-1"
-  resource_group_name  = azurerm_resource_group.this.name
-  location             = azurerm_resource_group.this.location
-  subnet_id            = module.vnet_spoke1.subnet_ids["Workload"]
+  name                 = each.value.name
+  resource_group_name  = module.resource_group.name
+  subnet_id            = module.vnet[each.value.vnet_key].subnet_ids[each.value.subnet_name]
   size                 = var.vm_size
   admin_username       = var.admin_username
   admin_password       = var.admin_password
-  join_lb_backend_pool = var.deploy.load_balancer
-  lb_backend_pool_id   = var.deploy.load_balancer ? module.load_balancer[0].backend_pool_id : null
-  tags                 = local.common_tags
+  join_lb_backend_pool = each.value.join_lb_backend_pool
+  lb_backend_pool_id   = each.value.join_lb_backend_pool ? try(module.load_balancer[0].backend_pool_id, null) : null
+  ctx                  = local.ctx
 
-  depends_on = [module.nsg_spoke1]
+  depends_on = [module.nsg]
 }
 
-module "vm_spoke1_2" {
-  count  = var.deploy.spoke1_vms ? 1 : 0
-  source = "./modules/vm-windows"
+module "vm_nva" {
+  for_each = local.vm_nva_enabled
+  source   = "./modules/vm-windows-nva"
 
-  name                 = "vm-spoke1-2"
-  resource_group_name  = azurerm_resource_group.this.name
-  location             = azurerm_resource_group.this.location
-  subnet_id            = module.vnet_spoke1.subnet_ids["Workload"]
-  size                 = var.vm_size
-  admin_username       = var.admin_username
-  admin_password       = var.admin_password
-  join_lb_backend_pool = var.deploy.load_balancer
-  lb_backend_pool_id   = var.deploy.load_balancer ? module.load_balancer[0].backend_pool_id : null
-  tags                 = local.common_tags
-
-  depends_on = [module.nsg_spoke1]
-}
-
-# -----------------------------------------------------------------------------
-# Spoke2 VM
-# -----------------------------------------------------------------------------
-
-module "vm_spoke2_1" {
-  count  = var.deploy.spoke2_vms ? 1 : 0
-  source = "./modules/vm-windows"
-
-  name                = "vm-spoke2-1"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_id           = module.vnet_spoke2.subnet_ids["Workload"]
+  name                = each.value.name
+  resource_group_name = module.resource_group.name
+  subnet_id           = module.vnet[each.value.vnet_key].subnet_ids[each.value.subnet_name]
+  private_ip_address  = each.value.private_ip
   size                = var.vm_size
   admin_username      = var.admin_username
   admin_password      = var.admin_password
-  tags                = local.common_tags
+  bgp_asn             = each.value.bgp_asn
+  route_server_ips    = var.deploy.route_server ? try(module.route_server[0].virtual_router_ips, []) : []
+  advertised_routes   = each.value.advertised_routes
+  ctx                 = local.ctx
 
-  depends_on = [module.nsg_spoke2]
-}
-
-# -----------------------------------------------------------------------------
-# OnPrem VM
-# -----------------------------------------------------------------------------
-
-module "vm_onprem_1" {
-  count  = var.deploy.onprem_vms ? 1 : 0
-  source = "./modules/vm-windows"
-
-  name                = "vm-onprem-1"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_id           = module.vnet_onprem.subnet_ids["Default"]
-  size                = var.vm_size
-  admin_username      = var.admin_username
-  admin_password      = var.admin_password
-  tags                = local.common_tags
-
-  depends_on = [module.nsg_onprem]
-}
-
-# =============================================================================
-# PHASE 12: NETWORK VIRTUAL APPLIANCES
-# =============================================================================
-
-# -----------------------------------------------------------------------------
-# OnPrem NVA (RRAS for routing)
-# -----------------------------------------------------------------------------
-
-module "vm_onprem_nva" {
-  count  = var.deploy.nvas ? 1 : 0
-  source = "./modules/vm-windows-nva"
-
-  name                = "vm-onprem-nva"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_id           = module.vnet_onprem.subnet_ids["NvaSubnet"]
-  private_ip_address  = "192.168.2.10"
-  size                = var.vm_size
-  admin_username      = var.admin_username
-  admin_password      = var.admin_password
-  tags                = local.common_tags
-
-  depends_on = [module.nsg_onprem]
-}
-
-# -----------------------------------------------------------------------------
-# Spoke1 NVA (for Route Server BGP peering)
-# -----------------------------------------------------------------------------
-
-module "vm_spoke1_nva" {
-  count  = var.deploy.nvas ? 1 : 0
-  source = "./modules/vm-windows-nva"
-
-  name                = "vm-spoke1-nva"
-  resource_group_name = azurerm_resource_group.this.name
-  location            = azurerm_resource_group.this.location
-  subnet_id           = module.vnet_spoke1.subnet_ids["NvaSubnet"]
-  private_ip_address  = "10.1.8.10"
-  size                = var.vm_size
-  admin_username      = var.admin_username
-  admin_password      = var.admin_password
-  
-  # BGP configuration for Route Server peering
-  bgp_asn           = var.deploy.route_server ? 65501 : null
-  route_server_ips  = var.deploy.route_server ? module.route_server[0].virtual_router_ips : []
-  advertised_routes = var.deploy.route_server ? ["10.100.0.0/16"] : []  # Example route to advertise
-  
-  tags = local.common_tags
-
-  depends_on = [module.nsg_spoke1, module.route_server]
+  depends_on = [module.nsg, module.route_server]
 }

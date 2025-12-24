@@ -107,7 +107,7 @@ EOT
 resource "azurerm_network_interface" "this" {
   name                  = "${var.name}-nic"
   resource_group_name   = var.resource_group_name
-  location              = var.location
+  location              = var.ctx.location
   ip_forwarding_enabled = true
 
   ip_configuration {
@@ -117,13 +117,13 @@ resource "azurerm_network_interface" "this" {
     private_ip_address            = var.private_ip_address
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_windows_virtual_machine" "this" {
   name                = var.name
   resource_group_name = var.resource_group_name
-  location            = var.location
+  location            = var.ctx.location
   size                = var.size
   admin_username      = var.admin_username
   admin_password      = var.admin_password
@@ -142,7 +142,7 @@ resource "azurerm_windows_virtual_machine" "this" {
     version   = "latest"
   }
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
 
 resource "azurerm_virtual_machine_extension" "rras" {
@@ -156,5 +156,5 @@ resource "azurerm_virtual_machine_extension" "rras" {
     commandToExecute = local.full_script
   })
 
-  tags = var.tags
+  tags = var.ctx.tags
 }
