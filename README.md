@@ -35,11 +35,18 @@ Learn Azure networking the right way—by building it. This Terraform project de
 
 > 💡 **Hands-on Learning**: Deploy real enterprise network infrastructure in minutes. Perfect for **AZ-700 certification prep**, team training, or validating network architectures before production.
 
+## 🧭 Master Control Panel (feature toggles)
+
+The lab is driven by the `deploy` object in `terraform.tfvars`. Flip the flags to change the footprint, then run `terraform plan` and `terraform apply`.
+
+> Note: When `deploy.route_server = true`, Spoke1 is not connected to vHub (Azure limitation).
+
 ---
 
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
+- [Documentation](#-documentation)
 - [Architecture Diagram](#-architecture-diagram)
 - [What Gets Deployed](#-what-gets-deployed)
 - [Network Topology](#-network-topology)
@@ -64,6 +71,18 @@ This lab deploys a **Virtual WAN-centric architecture** with:
 | **Spoke VNets** | Workload isolation |
 | **Route Server** | BGP route injection |
 | **Simulated On-Premises** | VPN testing |
+
+---
+
+## 📚 Documentation
+
+The full wiki lives in `wiki/` and mirrors the style of the Azure Landing Zone lab.
+
+- Start here: `wiki/README.md`
+- Deep dive guide: `wiki/book.md`
+- Architecture: `wiki/architecture/overview.md`
+- Scenarios: `wiki/scenarios/README.md`
+- Testing: `wiki/testing/lab-testing-guide.md`
 
 ---
 
@@ -148,7 +167,7 @@ This lab deploys a **Virtual WAN-centric architecture** with:
 | Component | Variable | Default |
 |-----------|----------|---------|
 | Azure Bastion | `deploy.bastion` | `false` |
-| Application Gateway (WAF) | `deploy.application_gateway` | `true` |
+| Application Gateway (WAF) | `deploy.application_gateway` | `false` |
 | DNS Private Resolver | `deploy.dns_resolver` | `true` |
 | NAT Gateway | `deploy.nat_gateway` | `true` |
 | Route Server | `deploy.route_server` | `true` |
@@ -165,14 +184,14 @@ This lab deploys a **Virtual WAN-centric architecture** with:
 | **Spoke 1** | 10.1.0.0/16 | Route Server testing |
 | ├─ Workload | 10.1.1.0/24 | VMs |
 | ├─ NvaSubnet | 10.1.8.0/24 | NVA (10.1.8.10) |
-| ├─ RouteServerSubnet | 10.1.9.0/24 | Route Server |
+| ├─ RouteServerSubnet | 10.1.7.0/27 | Route Server |
 | └─ Other subnets | 10.1.x.0/24 | LB, AppGw, PE, DNS, Bastion |
 | **Spoke 2** | 10.2.0.0/16 | vHub connected |
 | └─ Workload | 10.2.1.0/24 | VMs |
 | **On-Premises** | 192.168.0.0/16 | Simulated on-prem |
 | ├─ Default | 192.168.1.0/24 | VMs |
 | ├─ NvaSubnet | 192.168.2.0/24 | NVA (192.168.2.10) |
-| └─ GatewaySubnet | 192.168.0.0/24 | VPN Gateway |
+| └─ GatewaySubnet | 192.168.0.0/27 | VPN Gateway |
 
 ---
 
@@ -227,7 +246,7 @@ deploy = {
   private_dns_zones = true   # Private DNS Zones
   bastion           = false  # Azure Bastion (~$140/mo)
 
-  application_gateway = true  # WAF v2 (~$250/mo)
+  application_gateway = false # WAF v2 (~$250/mo)
   load_balancer       = true  # Internal Load Balancer
   nat_gateway         = true  # NAT Gateway (~$45/mo)
 
@@ -322,6 +341,7 @@ azure-network-lab/
 ├── providers.tf               # Provider configuration
 ├── terraform.tfvars           # Your configuration (gitignored)
 ├── terraform.tfvars.example   # Example configuration
+├── wiki/                      # Documentation wiki
 │
 └── modules/                   # Reusable modules
     ├── application-gateway/
