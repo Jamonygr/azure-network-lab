@@ -1,23 +1,54 @@
 # Terraform patterns
 
-This repo uses a consistent set of Terraform patterns for readability and safety.
+This repo follows a small set of patterns to keep the root module readable and to avoid optional-resource drift.
 
 ## Shared ctx object
-All modules accept `ctx` (project, location, tags) to keep inputs consistent.
+
+All modules accept a `ctx` object (project, location, tags), which reduces input sprawl and enforces consistent tagging.
 
 ## Data-driven maps
-Resources are created via `for_each` over maps in `locals.tf`:
+
+Most resources are created via `for_each` maps in `locals.tf`:
+
 - VNets and subnets
 - NSGs and rules
-- VMs and NVAs
-- vHub connections and BGP connections
+- VM instances and NVAs
+- vHub connections and BGP peers
 
-## Optional resources
-Optional modules use `count` (0 or 1) and filtered maps to avoid drift.
+This makes the topology easy to extend by adding new entries.
 
-## Guardrails
-- Variable validation for naming and location.
-- Preconditions for critical defaults (example: storage public access off).
+## Filtered maps for feature flags
+
+Optional resources use filtered maps to avoid partial state:
+
+```hcl
+vhub_connections_enabled = { for k, v in local.vhub_connections : k => v if v.enabled }
+```
+
+## Conditional modules with count
+
+Modules that are strictly on/off use `count` to avoid creating resources:
+
+```hcl
+module "vhub_firewall" {
+  count = var.deploy.vwan && var.deploy.vhub_firewall ? 1 : 0
+  # ...
+}
+```
+
+## Guardrails and validations
+
+- Variable validations enforce naming and location formats.
+- Storage account uses a `precondition` to prevent accidental public access.
+
+## Safe lookups
+
+`try()` is used when optional module outputs may not exist:
+
+```hcl
+vhub_id = try(module.vhub[0].id, null)
+```
 
 ## State safety
+
 `moved` blocks in `moved.tf` preserve state addresses after refactors.

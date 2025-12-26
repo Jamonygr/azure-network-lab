@@ -1,44 +1,67 @@
 # Architecture overview
 
-Azure Network Lab deploys a vWAN-centric topology for AZ-700 practice. The design focuses on core routing and security patterns: secured hubs, VPN with BGP, Route Server with RRAS NVA, and private DNS/Private Link.
+Azure Network Lab deploys a vWAN-centric topology for AZ-700 practice. The lab is intentionally compact but includes the core building blocks you would see in real enterprise networks: a secured hub, hub-and-spoke routing, optional site-to-site VPN, BGP route injection, and private DNS/Private Link.
+
+## Design goals
+
+- Teach vWAN and hub routing concepts with real infrastructure.
+- Provide hands-on BGP exposure (Route Server and VPN).
+- Include private DNS and private endpoints to practice name resolution.
+- Keep the footprint small enough for labs and training.
+
+## Non-goals
+
+- Multi-region or multi-hub architectures.
+- Production-grade security posture or strict least privilege.
+- Advanced routing policies (custom route tables, forced tunneling, SD-WAN).
 
 ## Core components
 
-| Component | Purpose |
-|-----------|---------|
-| Virtual WAN | Global transit fabric for hub-and-spoke routing. |
-| Virtual Hub | Regional hub (default /23 prefix). |
-| Secured Hub (Firewall) | Centralized security inspection and routing intent. |
-| vHub VPN Gateway | Terminate site-to-site VPN connections (optional). |
-| Route Server | BGP route injection to/from NVAs (optional). |
-| Spoke VNets | Workload isolation and routing tests. |
-| DNS Resolver + Private DNS | Private name resolution for spokes (optional). |
-| Private Endpoint | Storage private connectivity (optional). |
-| Windows VMs | Workload and NVA hosts for testing. |
+| Component | Purpose | Notes |
+|-----------|---------|-------|
+| Virtual WAN | Global transit fabric | Standard vWAN with branch-to-branch enabled. |
+| Virtual Hub | Regional hub | /23 prefix, Standard SKU. |
+| Secured Hub | Central inspection | Azure Firewall with routing intent (optional). |
+| vHub VPN Gateway | S2S termination | BGP enabled, ASN 65515 (optional). |
+| Spoke VNets | Workload isolation | Spoke1, Spoke2, and OnPrem simulation. |
+| Route Server | BGP route exchange | Spoke1 Route Server with NVA peer (optional). |
+| DNS Private Resolver | Private DNS resolution | Inbound/outbound endpoints in Spoke1 (optional). |
+| Private DNS zones | Private name resolution | `lab.internal` and `privatelink.blob.core.windows.net`. |
+| Private Endpoint | Private PaaS access | Storage blob endpoint in Spoke1 (optional). |
+| Windows VMs | Workload + NVA | Server 2022 Core, optional RRAS NVA. |
 
-## Default lab profile (terraform.tfvars)
+## Default lab profile
 
-| Flag | Default | Notes |
-|------|---------|-------|
-| `deploy.vwan` | `true` | vWAN and vHub are created. |
-| `deploy.vhub_firewall` | `true` | Secured Hub enabled. |
-| `deploy.vpn` | `false` | VPN off by default. |
-| `deploy.route_server` | `true` | Route Server + NVA enabled. |
-| `deploy.private_dns_zones` | `true` | Required for storage private endpoint. |
-| `deploy.dns_resolver` | `true` | Inbound/outbound endpoints in Spoke1. |
-| `deploy.private_endpoint` | `true` | Storage private endpoint enabled. |
-| `deploy.application_gateway` | `false` | WAF v2 App Gateway off by default. |
-| `deploy.load_balancer` | `true` | Internal LB for Spoke1 workload. |
-| `deploy.nat_gateway` | `true` | NAT for Spoke1 workload subnet. |
-| `deploy.bastion` | `false` | Bastion off by default. |
+The repository ships with a lab profile in `terraform.tfvars`. Treat it as the current, editable profile rather than a hard-coded default. The values below mirror that file and can be changed as needed:
 
-## Design constraints
-- Single environment (lab) with one state file.
-- Root module is the orchestrator; child modules have no provider blocks.
-- All modules consume a shared `ctx` object (project, location, tags).
-- Optional components are controlled by the `deploy` object.
+- `deploy.vwan`: true
+- `deploy.vhub_firewall`: true
+- `deploy.vpn`: false
+- `deploy.route_server`: true
+- `deploy.dns_resolver`: true
+- `deploy.private_dns_zones`: true
+- `deploy.private_endpoint`: true
+- `deploy.application_gateway`: false
+- `deploy.load_balancer`: true
+- `deploy.nat_gateway`: true
+- `deploy.bastion`: false
+- `deploy.spoke1_vms`: true
+- `deploy.spoke2_vms`: true
+- `deploy.onprem_vms`: false
+- `deploy.nvas`: true
 
-## Key behaviors
+## Key behaviors and constraints
+
 - Spoke1 is not connected to vHub when Route Server is enabled (Azure limitation).
 - Spoke1 and Spoke2 peer directly when Route Server is enabled.
-- Storage account public access is disabled; access is via private endpoint.
+- Storage account public access is disabled; access is via private endpoint only.
+- The lab uses a single Azure region and a single Terraform state file.
+
+## Related pages
+
+- Core fabric: `architecture/vwan-and-vhub.md`
+- Spokes and peering: `architecture/spokes-and-peerings.md`
+- Firewall: `architecture/firewall-and-routing-intent.md`
+- VPN: `architecture/vpn-and-hybrid.md`
+- Route Server: `architecture/route-server-and-nva.md`
+- Edge services: `architecture/edge-services.md`

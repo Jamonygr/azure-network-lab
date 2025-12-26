@@ -1,8 +1,8 @@
 # Naming conventions
 
-Resource names are derived from `ctx.project` using the prefix:
+Resource names are derived from `ctx.project` using a lowercase prefix:
 
-```
+```hcl
 local.prefix = lower(var.ctx.project)
 ```
 
@@ -28,9 +28,21 @@ local.prefix = lower(var.ctx.project)
 | VNet (onprem) | `vnet-onprem-<prefix>` | `vnet-onprem-az700-lab` |
 | VMs | `vm-<role>` | `vm-spoke1-1`, `vm-spoke1-nva` |
 
+## Storage account naming
+
+Storage account names must be lowercase, alphanumeric, and <= 24 characters. The lab uses a prefix derived from the `Project` tag and appends a random suffix:
+
+```hcl
+storage_account_name_prefix = "st" + lower(replace(ProjectTag, "-", ""))
+```
+
+Example: `staz700` + random 8 characters.
+
 ## Tag requirements
+
 Required tags are enforced by the tags module:
-- `Environment`
-- `Project`
-- `ManagedBy`
-- `Purpose`
+
+- Environment
+- Project
+- ManagedBy
+- Purpose

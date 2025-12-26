@@ -1,65 +1,51 @@
 # Azure Network Lab documentation
 
-Azure Network Lab is a vWAN-centric Terraform lab that focuses on AZ-700 networking skills: Virtual WAN, secured hubs, BGP routing, private DNS, and private endpoints. The docs are written to be practical and to map directly to the Terraform code in this repository.
+Azure Network Lab is a vWAN-centric Terraform lab focused on AZ-700 networking skills. The docs are structured like a small wiki: short pages, cross-links, and deep testing notes so you can explore topics the way you would on Wikipedia.
 
-## Who this is for
-- Cloud and network engineers who want a guided vWAN lab.
-- Students preparing for AZ-700 who want real infrastructure to explore.
-- Teams validating hub-and-spoke and hybrid routing patterns before production.
+## Project quick facts
 
-## What you will deploy
-- Virtual WAN and a regional Virtual Hub.
-- Optional Secured Hub (Azure Firewall) with routing intent.
-- Optional vHub VPN Gateway plus an on-premises VPN gateway.
-- Spoke VNets, NSGs, and optional peering.
-- Azure Route Server with an RRAS NVA for BGP route injection.
-- DNS Private Resolver and private DNS zones.
-- Storage account with Private Endpoint.
-- Windows Server workload VMs and NVA VMs.
+| Field | Value |
+|-------|-------|
+| Scope | Single-environment lab with optional hybrid connectivity and private access. |
+| Focus | Virtual WAN, secured hub, BGP, Route Server, private DNS, private endpoints. |
+| IaC | Terraform >= 1.5 with AzureRM ~> 4.14. |
+| Topology | 1 vWAN, 1 vHub (/23), 2 spokes, 1 on-prem simulation VNet. |
+| Compute | Windows Server 2022 Core workload VMs and RRAS NVAs. |
+| State | Local by default (see state guidance for remote options). |
 
-## How to use these docs
-1) Start with Architecture to understand the layout and design intent.
-2) Use Scenarios to follow hands-on lab paths (vWAN, VPN, Route Server, Private DNS).
-3) Review Modules to understand reusable building blocks.
-4) Use Reference for variables, outputs, naming, and patterns.
-5) Follow the Testing guide to validate your deployment.
+## How to use this wiki
 
-## Article map
+- If you are new: start with `book.md`, then the Architecture pages.
+- If you want hands-on labs: follow Scenarios and then Testing.
+- If you are changing the build: read Modules and Reference first.
 
-| Topic | What you will learn |
-|-------|---------------------|
-| [Book-style guide](book.md) | A-to-Z walkthrough of the repo flow and lab operations. |
-| [Architecture overview](architecture/overview.md) | The major components and how they fit together. |
-| [Network topology](architecture/network-topology.md) | Address spaces, subnets, and connectivity rules. |
-| [Security model](architecture/security-model.md) | Firewall, NSGs, and guardrails in this lab. |
-| [Configuration flow](architecture/configuration-flow.md) | How inputs flow through locals, modules, and outputs. |
-| **Scenarios** ||
-| [Scenarios overview](scenarios/README.md) | All lab scenarios in one place. |
-| [Virtual WAN basics](scenarios/vwan-basics.md) | vWAN and vHub connectivity validation. |
-| [Secured hub and firewall](scenarios/secured-hub-firewall.md) | Secured hub checks and routing intent. |
-| [VPN + BGP](scenarios/vpn-bgp.md) | Site-to-site VPN and BGP validation. |
-| [Route Server + NVA](scenarios/route-server-bgp.md) | Route Server peering with RRAS NVA. |
-| [Private endpoints + DNS](scenarios/private-endpoints-dns.md) | Private DNS zones and storage private endpoint tests. |
-| **Modules** ||
-| [Module design patterns](modules/README.md) | Shared module conventions and ctx usage. |
-| [Networking modules](modules/networking.md) | vWAN, vHub, VNets, NSGs, VPN, Route Server, DNS. |
-| [Compute modules](modules/compute.md) | Windows VMs and RRAS NVA. |
-| [Security modules](modules/security.md) | Firewall, NSGs, and access controls. |
-| [Monitoring modules](modules/monitoring.md) | Log Analytics. |
-| [PaaS modules](modules/paas.md) | Storage account and private endpoint. |
-| **Reference** ||
-| [Variables reference](reference/variables.md) | Inputs you set in `terraform.tfvars`. |
-| [Outputs reference](reference/outputs.md) | Deployment outputs for testing and operations. |
-| [Naming conventions](reference/naming-conventions.md) | Resource name patterns driven by `ctx`. |
-| [Terraform patterns](reference/terraform-patterns.md) | HCL idioms used throughout this repo. |
-| [Current config](reference/current-config.md) | Snapshot of the lab profile values. |
-| [Hardening checklist](reference/hardening.md) | Steps to tighten security for the lab. |
-| [State and secrets](reference/state-and-secrets.md) | State storage and secrets handling guidance. |
-| **Testing** ||
-| [Lab testing guide](testing/lab-testing-guide.md) | Step-by-step validation checklist. |
+## Documentation map
+
+| Category | Articles |
+|----------|----------|
+| Book | [Book-style guide](book.md) |
+| Architecture | [Overview](architecture/overview.md), [Network topology](architecture/network-topology.md), [vWAN and vHub](architecture/vwan-and-vhub.md), [Spokes and peerings](architecture/spokes-and-peerings.md), [Firewall and routing intent](architecture/firewall-and-routing-intent.md), [VPN and hybrid](architecture/vpn-and-hybrid.md), [Route Server and NVA](architecture/route-server-and-nva.md), [Edge services](architecture/edge-services.md), [Routing and BGP](architecture/routing-and-bgp.md), [Traffic flows](architecture/traffic-flows.md), [DNS and Private Link](architecture/dns-and-private-link.md), [Security model](architecture/security-model.md), [Configuration flow](architecture/configuration-flow.md), [Limitations and tradeoffs](architecture/limitations-and-tradeoffs.md) |
+| Scenarios | [Scenarios overview](scenarios/README.md), [Virtual WAN basics](scenarios/vwan-basics.md), [Secured hub and firewall](scenarios/secured-hub-firewall.md), [VPN and BGP](scenarios/vpn-bgp.md), [Route Server and NVA](scenarios/route-server-bgp.md), [Private endpoints and DNS](scenarios/private-endpoints-dns.md), [Edge services](scenarios/edge-services.md), [Minimal cost lab](scenarios/minimal-cost.md), [Full lab build](scenarios/full-lab.md) |
+| Modules | [Module design patterns](modules/README.md), [Networking modules](modules/networking.md), [Compute modules](modules/compute.md), [Security modules](modules/security.md), [Monitoring modules](modules/monitoring.md), [PaaS modules](modules/paas.md) |
+| Reference | [Variables](reference/variables.md), [Outputs](reference/outputs.md), [Naming](reference/naming-conventions.md), [Terraform patterns](reference/terraform-patterns.md), [Feature matrix](reference/feature-matrix.md), [AZ-700 alignment](reference/az-700-alignment.md), [ASNs and IPs](reference/asn-and-ips.md), [Defaults and SKUs](reference/defaults-and-skus.md), [CLI cheat sheet](reference/cli-cheatsheet.md), [Ports and protocols](reference/ports-and-protocols.md), [Cost model](reference/cost-model.md), [Current config](reference/current-config.md), [Hardening checklist](reference/hardening.md), [State and secrets](reference/state-and-secrets.md), [Glossary](reference/glossary.md) |
+| Testing | [Lab testing guide](testing/lab-testing-guide.md), [Component checks](testing/component-checks.md), [Route validation](testing/route-validation.md), [DNS validation](testing/dns-validation.md), [Test matrix](testing/test-matrix.md), [Troubleshooting](testing/troubleshooting.md) |
+
+## Conventions and assumptions
+
+- Single region, single environment, single state file.
+- Optional components are controlled by the `deploy` object.
+- Spoke1 cannot connect to vHub when Route Server is enabled (Azure limitation).
+- Resource names derive from `ctx.project` (see naming conventions).
 
 ## Before you start
-- Azure subscription with Owner or Contributor rights.
-- Terraform 1.9 or later.
-- Azure CLI signed in (`az login`).
-- Budget awareness: vHub Firewall, Route Server, and VPN Gateway have hourly cost.
+
+- Azure subscription with Owner or Contributor access.
+- Terraform and Azure CLI installed.
+- Budget awareness: vHub firewall, Route Server, VPN gateways, and App Gateway have ongoing costs.
+
+## Where to go next
+
+- New to the repo: read `book.md` and the Architecture overview.
+- AZ-700 mapping: `reference/az-700-alignment.md`.
+- Troubleshooting: start with `testing/troubleshooting.md`.
+- Deep dive definitions: use `reference/glossary.md` and the Reference section.

@@ -1,10 +1,22 @@
 # Security modules
 
 ## tags
-Merges default tags with required keys and validates that required keys are present.
+
+- Enforces required tags: Environment, Project, ManagedBy, Purpose.
+- Merges defaults with user-provided tags.
 
 ## vhub-firewall
-Deploys Azure Firewall in the vHub and attaches a firewall policy with routing intent.
+
+- Deploys Azure Firewall in vHub with a firewall policy.
+- Policy allows lab traffic for HTTP, HTTPS, and ICMP.
+- Routing intent sends Internet and private traffic through firewall.
 
 ## nsg
-Creates NSGs with per-subnet rules to enforce baseline segmentation.
+
+- Builds NSG rules from a map of rule definitions.
+- Attaches NSGs to multiple subnets in one module call.
+
+## Related pages
+
+- Security model: `architecture/security-model.md`
+- Hardening: `reference/hardening.md`

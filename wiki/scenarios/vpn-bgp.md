@@ -1,31 +1,44 @@
-# Scenario: VPN + BGP
+# Scenario: VPN and BGP
 
 ## Goal
-Validate site-to-site VPN connectivity between the on-prem VNet and the vHub using BGP.
+
+Validate the site-to-site VPN and BGP adjacency between the on-prem simulation and the vHub VPN gateway.
 
 ## Required toggles
+
 - `deploy.vwan = true`
 - `deploy.vpn = true`
-- `vpn_shared_key` must be set
+
+## Optional toggles
+
+- `deploy.onprem_vms` if you want to test VM-to-VM connectivity.
 
 ## Steps
-1. Confirm vHub VPN gateway and on-prem VPN gateway exist.
-2. Verify VPN site and connection status.
-3. Check BGP settings on both sides.
+
+1. Apply the lab and capture outputs.
+2. Confirm vHub VPN gateway and on-prem VPN gateway exist.
+3. Verify the VPN connection status is Connected.
+4. Validate BGP peer status on the on-prem gateway.
 
 ## Commands
+
 ```bash
-# vHub VPN gateway
-az network vhub gateway show -g rg-az700-lab -n vpngw-vhub-az700-lab -o table
+az network vhub gateway show -g rg-<prefix> -n vpngw-vhub-<prefix> -o table
+az network vnet-gateway show -g rg-<prefix> -n vpngw-onprem-<prefix> -o table
+az network vpn-connection show -g rg-<prefix> -n conn-onprem-to-vhub-<prefix> -o table
 
-# On-prem VPN gateway
-az network vnet-gateway show -g rg-az700-lab -n vpngw-onprem-az700-lab -o table
-
-# VPN connection state
-az network vpn-connection show -g rg-az700-lab -n conn-onprem-to-vhub-az700-lab -o table
+# BGP peer status (on-prem gateway)
+az network vnet-gateway list-bgp-peer-status -g rg-<prefix> -n vpngw-onprem-<prefix> -o table
 ```
 
 ## Expected results
-- Gateways are Succeeded.
-- VPN connection status is Connected.
-- BGP ASN 65510 (on-prem) and 65515 (vHub) are visible in outputs.
+
+- Gateways are in Succeeded state.
+- VPN connection shows Connected.
+- BGP peer status is Connected for ASN 65515.
+
+## Notes
+
+- Replace `<prefix>` with `ctx.project`.
+- Ensure `vpn_shared_key` is set in `terraform.tfvars`.
+- If BGP shows down, check IPsec status and shared key.

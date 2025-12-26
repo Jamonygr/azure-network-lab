@@ -1,22 +1,38 @@
 # Hardening checklist
 
-These steps tighten the lab configuration without changing its core architecture.
+These steps tighten the lab configuration without changing its core architecture. They are optional and intended for real-world practice.
 
 ## Identity and access
-- Use unique, strong admin passwords.
+
+- Use unique, strong admin passwords per environment.
 - Rotate VPN shared keys regularly.
-- Add additional required tags like `CostCenter` or `Owner`.
+- Restrict who can read outputs that contain IPs or secrets.
 
 ## Network security
-- Restrict NSG rules to known admin IPs if testing remotely.
-- Disable ICMP and HTTP rules when not needed.
-- Enable Azure Firewall for all hub connections.
 
-## Private access
+- Limit RDP to known admin IPs or use Bastion only.
+- Remove ICMP and HTTP rules when not testing.
+- Replace the firewall allow-all rules with a least-privilege policy.
+
+## PaaS protections
+
 - Keep storage public access disabled.
-- Prefer private endpoints and private DNS zones for PaaS.
+- Use private endpoints for all PaaS services you add.
+- Enable storage account logging and Azure Defender.
 
-## Operations
+## Monitoring and logging
+
+- Send firewall diagnostics to Log Analytics.
+- Enable NSG flow logs for workload subnets.
+- Capture VPN gateway diagnostics for connection analysis.
+
+## Terraform and state
+
+- Use remote state with encryption and blob versioning.
 - Store secrets in a vault or environment variables, not in git.
-- Use remote state with blob versioning for rollback.
-- Export logs to Log Analytics and review firewall diagnostics.
+- Enable state locking and soft-delete for rollback.
+
+## Documentation
+
+- Update `reference/current-config.md` after each profile change.
+- Document any custom routes or NSG rules you add.

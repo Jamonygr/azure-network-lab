@@ -1,20 +1,36 @@
 # Modules overview
 
-All modules are thin, single-responsibility building blocks. Each module accepts the shared `ctx` object and relies on the root module for provider configuration.
+Modules are thin, single-responsibility building blocks. The root module controls feature flags and wiring; modules focus on a specific resource group of Azure services.
 
 ## Conventions
-- `ctx.project` drives naming; `ctx.location` sets region; `ctx.tags` apply tags.
-- Optional resources are enabled by the root module using `count` or `for_each`.
-- Modules avoid embedded providers; root `providers.tf` owns provider configuration.
 
-## Module categories
+- All modules accept a shared `ctx` object (project, location, tags).
+- Provider configuration lives in the root (`providers.tf`).
+- Naming is passed in from the root; modules do not invent names.
+- Optional resources are enabled with `count` or filtered `for_each` maps.
 
-| Category | Modules |
-|----------|---------|
-| Networking | vwan, vhub, vhub-connection, vhub-firewall, vhub-vpn-gateway, vnet, nsg, vnet-peering, route-server, vpn-gateway, vpn-site, vpn-connection, local-network-gateway, nat-gateway, load-balancer, application-gateway, bastion, dns-private-resolver, private-dns-zone |
-| Compute | vm-windows, vm-windows-nva |
-| Security | tags, vhub-firewall, nsg |
-| Monitoring | log-analytics |
-| PaaS | storage-account, private-endpoint |
+## Module map
 
-For details, see the module-specific pages.
+| Category | Modules | Notes |
+|----------|---------|-------|
+| Foundation | `resource-group`, `tags`, `log-analytics` | Core lab scaffolding. |
+| WAN/Hub | `vwan`, `vhub`, `vhub-connection`, `vhub-firewall`, `vhub-vpn-gateway` | vWAN fabric and hub services. |
+| VNets | `vnet`, `vnet-peering`, `nsg` | Spoke VNets, peering, and NSGs. |
+| Hybrid | `vpn-gateway`, `vpn-site`, `vpn-connection`, `local-network-gateway` | S2S VPN and on-prem simulation. |
+| Routing | `route-server` | BGP with NVA peers. |
+| DNS | `dns-private-resolver`, `private-dns-zone` | Private DNS services. |
+| Edge | `nat-gateway`, `load-balancer`, `application-gateway`, `bastion` | Per-spoke edge services. |
+| Compute | `vm-windows`, `vm-windows-nva` | Workload VMs and RRAS NVA. |
+| PaaS | `storage-account`, `private-endpoint` | Storage + private endpoint. |
+
+## Design notes
+
+- Modules are intentionally small so you can read the Azure resource definitions directly.
+- All modules return the key IDs and IPs needed by the root module.
+- The root module enforces ordering via `depends_on` only where necessary.
+
+## Next
+
+- Networking details: `modules/networking.md`
+- Compute details: `modules/compute.md`
+- Security details: `modules/security.md`
