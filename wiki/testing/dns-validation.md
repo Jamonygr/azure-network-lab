@@ -1,5 +1,10 @@
 # DNS validation
 
+<p align="center">
+  <img src="../images/testing-dns-validation.svg" alt="DNS validation banner" width="1000" />
+</p>
+
+
 Use these checks to confirm private DNS zones, VNet links, and private endpoint resolution.
 
 ## DNS zones and links
@@ -47,3 +52,10 @@ az resource list -g rg-<prefix> --resource-type Microsoft.Network/dnsResolvers -
 Expected:
 
 - DNS Private Resolver exists when `deploy.dns_resolver = true`.
+
+## Related pages
+
+- [DNS and Private Link](../architecture/dns-and-private-link.md)
+- [Scenario: Private endpoints and DNS](../scenarios/private-endpoints-dns.md)
+- [Ports and protocols](../reference/ports-and-protocols.md)
+- [Defaults and SKUs](../reference/defaults-and-skus.md)

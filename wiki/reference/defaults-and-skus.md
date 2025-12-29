@@ -1,5 +1,10 @@
 # Defaults and SKUs
 
+<p align="center">
+  <img src="../images/reference-defaults-and-skus.svg" alt="Defaults and SKUs banner" width="1000" />
+</p>
+
+
 This page lists the key defaults and SKUs used across the lab. Values are drawn from module defaults and the root module wiring.
 
 ## Core networking
@@ -47,3 +52,10 @@ This page lists the key defaults and SKUs used across the lab. Values are drawn 
 
 - Defaults can be overridden in the root module or `terraform.tfvars`.
 - Check module `variables.tf` files for precise defaults.
+
+## Related pages
+
+- [Cost model](cost-model.md)
+- [Scenario: Minimal cost lab](../scenarios/minimal-cost.md)
+- [Feature matrix](feature-matrix.md)
+- [Variables reference](variables.md)

@@ -1,5 +1,10 @@
 # DNS and Private Link
 
+<p align="center">
+  <img src="../images/architecture-dns-and-private-link.svg" alt="DNS and Private Link banner" width="1000" />
+</p>
+
+
 This lab includes private DNS zones, a DNS Private Resolver, and a storage private endpoint so you can practice private name resolution end-to-end.
 
 ## Components
@@ -49,3 +54,8 @@ az vm run-command invoke -g rg-<prefix> -n vm-spoke1-1 \
 - DNS validation: `testing/dns-validation.md`
 - Testing: `testing/lab-testing-guide.md`
 - Reference: `reference/ports-and-protocols.md`
+- [Scenario: Private endpoints and DNS](../scenarios/private-endpoints-dns.md)
+- [DNS validation](../testing/dns-validation.md)
+- [Ports and protocols](../reference/ports-and-protocols.md)
+- [Defaults and SKUs](../reference/defaults-and-skus.md)
+

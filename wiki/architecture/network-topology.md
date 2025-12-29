@@ -1,5 +1,10 @@
 # Network topology
 
+<p align="center">
+  <img src="../images/architecture-network-topology.svg" alt="Network topology banner" width="1000" />
+</p>
+
+
 This lab uses one vHub, two spokes, and an optional on-premises simulation VNet. Address spaces and subnets are defined in `locals.tf` so the topology can be reviewed without opening the Azure portal.
 
 ## Address spaces
@@ -60,3 +65,6 @@ This lab uses one vHub, two spokes, and an optional on-premises simulation VNet.
 - Spokes and peerings: `architecture/spokes-and-peerings.md`
 - Routing deep dive: `architecture/routing-and-bgp.md`
 - Traffic flow examples: `architecture/traffic-flows.md`
+- [vWAN and vHub](vwan-and-vhub.md)
+- [Scenario: Virtual WAN basics](../scenarios/vwan-basics.md)
+

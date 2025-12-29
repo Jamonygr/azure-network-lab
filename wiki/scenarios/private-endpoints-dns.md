@@ -1,5 +1,10 @@
 # Scenario: Private endpoints and DNS
 
+<p align="center">
+  <img src="../images/scenarios-private-endpoints-dns.svg" alt="Scenario: Private endpoints and DNS banner" width="1000" />
+</p>
+
+
 ## Goal
 
 Validate that the storage account is private, a private endpoint exists, and DNS resolves to the private IP.
@@ -44,3 +49,10 @@ az vm run-command invoke -g rg-<prefix> -n vm-spoke1-1 \
 - Replace `<prefix>` with `ctx.project`.
 - Storage account name is available via `terraform output storage_account_name`.
 - Ensure the VM used for testing is deployed and reachable.
+
+## Related pages
+
+- [DNS and Private Link](../architecture/dns-and-private-link.md)
+- [DNS validation](../testing/dns-validation.md)
+- [Ports and protocols](../reference/ports-and-protocols.md)
+- [Defaults and SKUs](../reference/defaults-and-skus.md)

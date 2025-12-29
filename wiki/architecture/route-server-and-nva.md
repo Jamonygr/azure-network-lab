@@ -1,5 +1,10 @@
 # Route Server and NVA
 
+<p align="center">
+  <img src="../images/architecture-route-server-and-nva.svg" alt="Route Server and NVA banner" width="1000" />
+</p>
+
+
 This page explains how Azure Route Server is paired with a Windows RRAS NVA to provide BGP route exchange in the lab.
 
 ## Route Server
@@ -57,3 +62,7 @@ az vm run-command invoke -g rg-<prefix> -n vm-spoke1-nva \
 
 - Routing overview: `architecture/routing-and-bgp.md`
 - Scenario: `scenarios/route-server-bgp.md`
+- [Scenario: Route Server and NVA (BGP)](../scenarios/route-server-bgp.md)
+- [Route validation](../testing/route-validation.md)
+- [ASNs and IPs](../reference/asn-and-ips.md)
+

@@ -1,5 +1,10 @@
 # VPN and hybrid
 
+<p align="center">
+  <img src="../images/architecture-vpn-and-hybrid.svg" alt="VPN and hybrid banner" width="1000" />
+</p>
+
+
 This lab simulates an on-premises environment and connects it to the vHub using site-to-site VPN with BGP.
 
 ## Components
@@ -53,3 +58,7 @@ az network vpn-connection show -g rg-<prefix> -n conn-onprem-to-vhub-<prefix> -o
 
 - Routing overview: `architecture/routing-and-bgp.md`
 - VPN scenario: `scenarios/vpn-bgp.md`
+- [Route Server and NVA](route-server-and-nva.md)
+- [Scenario: VPN and BGP](../scenarios/vpn-bgp.md)
+- [Route validation](../testing/route-validation.md)
+

@@ -1,5 +1,10 @@
 # Scenario: VPN and BGP
 
+<p align="center">
+  <img src="../images/scenarios-vpn-bgp.svg" alt="Scenario: VPN and BGP banner" width="1000" />
+</p>
+
+
 ## Goal
 
 Validate the site-to-site VPN and BGP adjacency between the on-prem simulation and the vHub VPN gateway.
@@ -42,3 +47,10 @@ az network vnet-gateway list-bgp-peer-status -g rg-<prefix> -n vpngw-onprem-<pre
 - Replace `<prefix>` with `ctx.project`.
 - Ensure `vpn_shared_key` is set in `terraform.tfvars`.
 - If BGP shows down, check IPsec status and shared key.
+
+## Related pages
+
+- [VPN and hybrid](../architecture/vpn-and-hybrid.md)
+- [Routing and BGP](../architecture/routing-and-bgp.md)
+- [Route validation](../testing/route-validation.md)
+- [ASNs and IPs](../reference/asn-and-ips.md)

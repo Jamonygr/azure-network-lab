@@ -1,5 +1,10 @@
 # Component checks
 
+<p align="center">
+  <img src="../images/testing-component-checks.svg" alt="Component checks banner" width="1000" />
+</p>
+
+
 This page provides focused checks for each major component. Use it when a single feature is not behaving as expected.
 
 ## Resource group inventory
@@ -74,3 +79,10 @@ az network private-endpoint list -g rg-<prefix> -o table
 
 - Route validation: `route-validation.md`
 - DNS validation: `dns-validation.md`
+
+## Related pages
+
+- [Lab testing guide](lab-testing-guide.md)
+- [Troubleshooting](troubleshooting.md)
+- [Scenario: Virtual WAN basics](../scenarios/vwan-basics.md)
+- [CLI cheat sheet](../reference/cli-cheatsheet.md)

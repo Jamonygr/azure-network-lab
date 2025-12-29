@@ -1,5 +1,10 @@
 # Architecture overview
 
+<p align="center">
+  <img src="../images/architecture-overview.svg" alt="Architecture overview banner" width="1000" />
+</p>
+
+
 Azure Network Lab deploys a vWAN-centric topology for AZ-700 practice. The lab is intentionally compact but includes the core building blocks you would see in real enterprise networks: a secured hub, hub-and-spoke routing, optional site-to-site VPN, BGP route injection, and private DNS/Private Link.
 
 ## Design goals
@@ -65,3 +70,8 @@ The repository ships with a lab profile in `terraform.tfvars`. Treat it as the c
 - VPN: `architecture/vpn-and-hybrid.md`
 - Route Server: `architecture/route-server-and-nva.md`
 - Edge services: `architecture/edge-services.md`
+- [Network topology](network-topology.md)
+- [Routing and BGP](routing-and-bgp.md)
+- [Security model](security-model.md)
+- [Configuration flow](configuration-flow.md)
+

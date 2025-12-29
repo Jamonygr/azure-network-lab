@@ -31,6 +31,15 @@
 [![Azure](https://img.shields.io/badge/Azure-AzureRM%204.x-0078D4?logo=microsoftazure)](https://azure.microsoft.com)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
+<p align="center">
+  <img src="docs/images/hero-network-lab.svg" alt="Azure Network Lab banner" width="1000" />
+</p>
+
+<p align="center">
+  <img src="docs/images/overview-components.svg" alt="Core networking components overview" width="1000" />
+</p>
+
+
 Learn Azure networking the right way—by building it. This Terraform project deploys a complete **vWAN-centric networking environment** you can explore, break, and rebuild. Covers Virtual WAN, Secured Hub, VPN connectivity, Route Server, and spoke networks following Microsoft best practices.
 
 > 💡 **Hands-on Learning**: Deploy real enterprise network infrastructure in minutes. Perfect for **AZ-700 certification prep**, team training, or validating network architectures before production.
@@ -76,6 +85,11 @@ This lab deploys a **Virtual WAN-centric architecture** with:
 
 ## 📚 Documentation
 
+<p align="center">
+  <img src="docs/images/documentation-map.svg" alt="Documentation map" width="1000" />
+</p>
+
+
 The full wiki lives in `wiki/` and mirrors the style of the Azure Landing Zone lab.
 
 - Start here: `wiki/README.md`
@@ -87,6 +101,11 @@ The full wiki lives in `wiki/` and mirrors the style of the Azure Landing Zone l
 ---
 
 ## 🏛️ Architecture Diagram
+
+<p align="center">
+  <img src="docs/images/architecture-overview.svg" alt="Virtual WAN architecture overview" width="1000" />
+</p>
+
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -175,6 +194,11 @@ The full wiki lives in `wiki/` and mirrors the style of the Azure Landing Zone l
 ---
 
 ## 🌐 Network Topology
+
+<p align="center">
+  <img src="docs/images/network-topology.svg" alt="Network topology summary" width="1000" />
+</p>
+
 
 ### Address Space Allocation
 

@@ -1,5 +1,10 @@
 # vWAN and vHub
 
+<p align="center">
+  <img src="../images/architecture-vwan-and-vhub.svg" alt="vWAN and vHub banner" width="1000" />
+</p>
+
+
 This page focuses on the vWAN fabric and vHub services created by the lab. These resources form the core transit layer for hub-and-spoke routing.
 
 ## Virtual WAN (vWAN)
@@ -48,3 +53,7 @@ If `deploy.vpn = true`, the lab creates a vHub VPN gateway:
 - Routing behaviors: `architecture/routing-and-bgp.md`
 - VPN details: `architecture/vpn-and-hybrid.md`
 - Connectivity tests: `testing/lab-testing-guide.md`
+- [Network topology](network-topology.md)
+- [Firewall and routing intent](firewall-and-routing-intent.md)
+- [Scenario: Virtual WAN basics](../scenarios/vwan-basics.md)
+

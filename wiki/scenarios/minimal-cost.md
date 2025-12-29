@@ -1,5 +1,10 @@
 # Scenario: Minimal cost lab
 
+<p align="center">
+  <img src="../images/scenarios-minimal-cost.svg" alt="Scenario: Minimal cost lab banner" width="1000" />
+</p>
+
+
 ## Goal
 
 Deploy a lightweight lab profile for basic vWAN and spoke connectivity while minimizing paid services.
@@ -53,3 +58,10 @@ az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix> -o tabl
 
 - This profile skips paid services like Firewall, VPN, Route Server, DNS resolver, and App Gateway.
 - Add optional services as needed for deeper tests.
+
+## Related pages
+
+- [Cost model](../reference/cost-model.md)
+- [Defaults and SKUs](../reference/defaults-and-skus.md)
+- [Feature matrix](../reference/feature-matrix.md)
+- [Limitations and tradeoffs](../architecture/limitations-and-tradeoffs.md)

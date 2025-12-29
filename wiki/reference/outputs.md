@@ -1,5 +1,10 @@
 # Outputs reference
 
+<p align="center">
+  <img src="../images/reference-outputs.svg" alt="Outputs reference banner" width="1000" />
+</p>
+
+
 Outputs are defined in `outputs.tf`. Many outputs are conditional and will be `null` when the related service is disabled.
 
 ## Core outputs
@@ -81,3 +86,10 @@ connection_info = {
 terraform output
 terraform output -json
 ```
+
+## Related pages
+
+- [Lab testing guide](../testing/lab-testing-guide.md)
+- [Configuration flow](../architecture/configuration-flow.md)
+- [Variables reference](variables.md)
+- [CLI cheat sheet](cli-cheatsheet.md)

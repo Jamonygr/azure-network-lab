@@ -1,5 +1,10 @@
 # Azure Network Lab - Book-Style Guide
 
+<p align="center">
+  <img src="images/book.svg" alt="Azure Network Lab - Book-Style Guide banner" width="1000" />
+</p>
+
+
 This guide connects the Terraform code, network design, and testing steps into a single narrative. It is intentionally detailed, so you can treat it like a book or a wiki: read it end-to-end or jump to the section you need.
 
 ## What this lab is
@@ -212,3 +217,7 @@ Scenarios provide short, purpose-built lab paths:
 - Reference: `reference/feature-matrix.md`
 - Testing: `testing/component-checks.md`
 - Glossary: `reference/glossary.md`
+
+## Related pages
+
+- [Variables reference](reference/variables.md)

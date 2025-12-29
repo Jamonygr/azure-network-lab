@@ -1,5 +1,10 @@
 # Edge services
 
+<p align="center">
+  <img src="../images/architecture-edge-services.svg" alt="Edge services banner" width="1000" />
+</p>
+
+
 Edge services live in Spoke1 and are optional. They are intended for lab validation, not production workloads.
 
 ## Internal Load Balancer (ILB)
@@ -44,3 +49,8 @@ Created by `modules/bastion`:
 
 - Scenario: `scenarios/edge-services.md`
 - Ports: `reference/ports-and-protocols.md`
+- [Scenario: Edge services (LB, NAT, App Gateway, Bastion)](../scenarios/edge-services.md)
+- [Defaults and SKUs](../reference/defaults-and-skus.md)
+- [Security modules](../modules/security.md)
+- [Networking modules](../modules/networking.md)
+

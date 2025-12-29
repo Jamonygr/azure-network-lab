@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-label="Virtual WAN architecture overview">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f7fbff"/>
+      <stop offset="100%" stop-color="#eaf2fb"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#7aa9d8"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="700" fill="url(#bg)"/>
+
+  <text x="600" y="50" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="700" text-anchor="middle" fill="#0b1f3a">
+    Virtual WAN Architecture
+  </text>
+
+  <g stroke="#7aa9d8" stroke-width="3" marker-end="url(#arrow)">
+    <line x1="600" y1="150" x2="300" y2="260"/>
+    <line x1="600" y1="150" x2="900" y2="260"/>
+    <line x1="600" y1="150" x2="300" y2="520"/>
+    <line x1="600" y1="150" x2="900" y2="520"/>
+  </g>
+
+  <rect x="500" y="110" width="200" height="80" rx="14" fill="#0f4c81"/>
+  <text x="600" y="158" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" text-anchor="middle" fill="#ffffff">
+    vHub
+  </text>
+  <text x="600" y="180" font-family="Segoe UI, Arial, sans-serif" font-size="12" text-anchor="middle" fill="#d7e2f0">
+    Secured Hub + Firewall
+  </text>
+
+  <rect x="210" y="230" width="180" height="90" rx="14" fill="#ffffff" stroke="#7aa9d8" stroke-width="2"/>
+  <text x="300" y="272" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#0b1f3a">
+    Spoke 1
+  </text>
+  <text x="300" y="292" font-family="Segoe UI, Arial, sans-serif" font-size="12" text-anchor="middle" fill="#526a86">
+    Route Server
+  </text>
+
+  <rect x="810" y="230" width="180" height="90" rx="14" fill="#ffffff" stroke="#7aa9d8" stroke-width="2"/>
+  <text x="900" y="272" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#0b1f3a">
+    Spoke 2
+  </text>
+  <text x="900" y="292" font-family="Segoe UI, Arial, sans-serif" font-size="12" text-anchor="middle" fill="#526a86">
+    vHub Connected
+  </text>
+
+  <rect x="210" y="490" width="180" height="90" rx="14" fill="#ffffff" stroke="#7aa9d8" stroke-width="2"/>
+  <text x="300" y="532" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#0b1f3a">
+    On-Prem
+  </text>
+  <text x="300" y="552" font-family="Segoe UI, Arial, sans-serif" font-size="12" text-anchor="middle" fill="#526a86">
+    VPN + NVA
+  </text>
+
+  <rect x="810" y="490" width="180" height="90" rx="14" fill="#ffffff" stroke="#7aa9d8" stroke-width="2"/>
+  <text x="900" y="532" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="600" text-anchor="middle" fill="#0b1f3a">
+    Workloads
+  </text>
+  <text x="900" y="552" font-family="Segoe UI, Arial, sans-serif" font-size="12" text-anchor="middle" fill="#526a86">
+    VMs and services
+  </text>
+</svg>

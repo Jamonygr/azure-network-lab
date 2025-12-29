@@ -1,5 +1,10 @@
 # Scenario: Route Server and NVA (BGP)
 
+<p align="center">
+  <img src="../images/scenarios-route-server-bgp.svg" alt="Scenario: Route Server and NVA (BGP) banner" width="1000" />
+</p>
+
+
 ## Goal
 
 Validate that Azure Route Server is deployed and that the RRAS NVA peers via BGP.
@@ -40,3 +45,10 @@ az vm run-command invoke -g rg-<prefix> -n vm-spoke1-nva \
 - Replace `<prefix>` with `ctx.project`.
 - Spoke1 is not connected to vHub when Route Server is enabled.
 - Route Server uses ASN 65515; NVA uses ASN 65501.
+
+## Related pages
+
+- [Route Server and NVA](../architecture/route-server-and-nva.md)
+- [Routing and BGP](../architecture/routing-and-bgp.md)
+- [Route validation](../testing/route-validation.md)
+- [ASNs and IPs](../reference/asn-and-ips.md)

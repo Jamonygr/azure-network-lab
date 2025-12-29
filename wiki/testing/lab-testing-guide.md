@@ -1,5 +1,10 @@
 # Lab testing guide
 
+<p align="center">
+  <img src="../images/testing-lab-testing-guide.svg" alt="Lab testing guide banner" width="1000" />
+</p>
+
+
 Use this checklist after `terraform apply` to confirm the lab is working. Run only the sections that match the features you enabled.
 
 ## Pre-flight
@@ -127,3 +132,8 @@ terraform destroy -auto-approve
 - DNS validation: `dns-validation.md`
 - Test matrix: `test-matrix.md`
 - Troubleshooting: `troubleshooting.md`
+
+## Related pages
+
+- [Outputs reference](../reference/outputs.md)
+- [Lab scenarios](../scenarios/README.md)

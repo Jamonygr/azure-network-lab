@@ -1,5 +1,10 @@
 # Scenario: Secured hub and firewall
 
+<p align="center">
+  <img src="../images/scenarios-secured-hub-firewall.svg" alt="Scenario: Secured hub and firewall banner" width="1000" />
+</p>
+
+
 ## Goal
 
 Validate that Azure Firewall is deployed in the vHub and that routing intent is active for hub connections.
@@ -37,3 +42,10 @@ az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix> -o tabl
 - Replace `<prefix>` with `ctx.project`.
 - Traffic inspection behavior depends on routing intent, which is created by the firewall module.
 - Use the testing guide for connectivity checks: `../testing/lab-testing-guide.md`.
+
+## Related pages
+
+- [Firewall and routing intent](../architecture/firewall-and-routing-intent.md)
+- [Security model](../architecture/security-model.md)
+- [Component checks](../testing/component-checks.md)
+- [Ports and protocols](../reference/ports-and-protocols.md)

@@ -1,5 +1,10 @@
 # Troubleshooting
 
+<p align="center">
+  <img src="../images/testing-troubleshooting.svg" alt="Troubleshooting banner" width="1000" />
+</p>
+
+
 This page lists common failure modes and what to check first.
 
 ## General checks
@@ -59,3 +64,9 @@ This page lists common failure modes and what to check first.
 - Review `testing/component-checks.md` and rerun the relevant checks.
 - Review `testing/lab-testing-guide.md` and rerun the relevant tests.
 - Use `terraform plan` to confirm the desired state.
+
+## Related pages
+
+- [CLI cheat sheet](../reference/cli-cheatsheet.md)
+- [Ports and protocols](../reference/ports-and-protocols.md)
+- [Hardening checklist](../reference/hardening.md)

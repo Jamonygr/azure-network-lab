@@ -1,5 +1,10 @@
 # ASNs and IPs
 
+<p align="center">
+  <img src="../images/reference-asn-and-ips.svg" alt="ASNs and IPs banner" width="1000" />
+</p>
+
+
 This page summarizes the default ASNs and key IP addresses used in the lab. Dynamic values (like vHub gateway IPs) are derived during apply and may not be exposed as outputs.
 
 ## BGP ASNs
@@ -48,3 +53,8 @@ These are derived in `locals.tf` and are not exposed as outputs by default. Use 
 
 - Network topology: `architecture/network-topology.md`
 - Routing: `architecture/routing-and-bgp.md`
+- [Routing and BGP](../architecture/routing-and-bgp.md)
+- [Scenario: VPN and BGP](../scenarios/vpn-bgp.md)
+- [Scenario: Route Server and NVA (BGP)](../scenarios/route-server-bgp.md)
+- [Route Server and NVA](../architecture/route-server-and-nva.md)
+

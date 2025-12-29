@@ -1,5 +1,10 @@
 # Terraform patterns
 
+<p align="center">
+  <img src="../images/reference-terraform-patterns.svg" alt="Terraform patterns banner" width="1000" />
+</p>
+
+
 This repo follows a small set of patterns to keep the root module readable and to avoid optional-resource drift.
 
 ## Shared ctx object
@@ -52,3 +57,10 @@ vhub_id = try(module.vhub[0].id, null)
 ## State safety
 
 `moved` blocks in `moved.tf` preserve state addresses after refactors.
+
+## Related pages
+
+- [Modules overview](../modules/README.md)
+- [Configuration flow](../architecture/configuration-flow.md)
+- [Variables reference](variables.md)
+- [Feature matrix](feature-matrix.md)

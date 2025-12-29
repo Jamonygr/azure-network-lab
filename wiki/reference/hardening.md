@@ -1,5 +1,10 @@
 # Hardening checklist
 
+<p align="center">
+  <img src="../images/reference-hardening.svg" alt="Hardening checklist banner" width="1000" />
+</p>
+
+
 These steps tighten the lab configuration without changing its core architecture. They are optional and intended for real-world practice.
 
 ## Identity and access
@@ -36,3 +41,10 @@ These steps tighten the lab configuration without changing its core architecture
 
 - Update `reference/current-config.md` after each profile change.
 - Document any custom routes or NSG rules you add.
+
+## Related pages
+
+- [Security model](../architecture/security-model.md)
+- [State and secrets](state-and-secrets.md)
+- [Ports and protocols](ports-and-protocols.md)
+- [Troubleshooting](../testing/troubleshooting.md)

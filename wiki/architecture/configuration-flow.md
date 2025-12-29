@@ -1,5 +1,10 @@
 # Configuration flow
 
+<p align="center">
+  <img src="../images/architecture-configuration-flow.svg" alt="Configuration flow banner" width="1000" />
+</p>
+
+
 This page shows how values move from inputs to resources. Understanding this flow makes it easier to add or remove services without breaking dependencies.
 
 ## 1) Inputs
@@ -58,3 +63,8 @@ vm_windows_enabled = { for k, v in local.vm_windows : k => v if v.enabled }
 
 - `architecture/routing-and-bgp.md`
 - `modules/README.md`
+- [Variables reference](../reference/variables.md)
+- [Outputs reference](../reference/outputs.md)
+- [Terraform patterns](../reference/terraform-patterns.md)
+- [Architecture overview](overview.md)
+

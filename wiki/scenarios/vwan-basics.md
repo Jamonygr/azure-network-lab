@@ -1,5 +1,10 @@
 # Scenario: Virtual WAN basics
 
+<p align="center">
+  <img src="../images/scenarios-vwan-basics.svg" alt="Scenario: Virtual WAN basics banner" width="1000" />
+</p>
+
+
 ## Goal
 
 Validate that vWAN and vHub are deployed and that spokes connect as expected.
@@ -46,3 +51,10 @@ az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix> -o tabl
 
 - Replace `<prefix>` with `ctx.project`.
 - If the vHub connection is missing, confirm `deploy.vwan` and `deploy.route_server`.
+
+## Related pages
+
+- [vWAN and vHub](../architecture/vwan-and-vhub.md)
+- [Network topology](../architecture/network-topology.md)
+- [Component checks](../testing/component-checks.md)
+- [Variables reference](../reference/variables.md)

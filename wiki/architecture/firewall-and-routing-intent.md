@@ -1,5 +1,10 @@
 # Firewall and routing intent
 
+<p align="center">
+  <img src="../images/architecture-firewall-and-routing-intent.svg" alt="Firewall and routing intent banner" width="1000" />
+</p>
+
+
 When enabled, Azure Firewall runs inside the vHub (Secured Hub) and routing intent steers traffic through it. This page describes the default lab policy and what it means for traffic flow.
 
 ## Firewall deployment
@@ -49,3 +54,6 @@ az network firewall policy show -g rg-<prefix> -n fwpol-<prefix> -o table
 
 - Traffic flows: `architecture/traffic-flows.md`
 - Security model: `architecture/security-model.md`
+- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
+- [Ports and protocols](../reference/ports-and-protocols.md)
+

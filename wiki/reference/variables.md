@@ -1,5 +1,10 @@
 # Variables reference
 
+<p align="center">
+  <img src="../images/reference-variables.svg" alt="Variables reference banner" width="1000" />
+</p>
+
+
 This page summarizes the variables in `variables.tf`. Values in `terraform.tfvars` override defaults, so treat this as a contract rather than a profile.
 
 ## Top-level inputs
@@ -79,3 +84,10 @@ admin_password  = "<secure-password>"
 
 vpn_shared_key = "<shared-key>"
 ```
+
+## Related pages
+
+- [Configuration flow](../architecture/configuration-flow.md)
+- [Current config (lab profile)](current-config.md)
+- [Feature matrix](feature-matrix.md)
+- [Outputs reference](outputs.md)

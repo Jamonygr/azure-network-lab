@@ -1,5 +1,10 @@
 # Spokes and peerings
 
+<p align="center">
+  <img src="../images/architecture-spokes-and-peerings.svg" alt="Spokes and peerings banner" width="1000" />
+</p>
+
+
 This page covers the VNets, subnet layout, NSGs, and VNet peerings that define the spoke layer.
 
 ## Spoke VNets
@@ -42,3 +47,7 @@ This provides direct connectivity when Spoke1 cannot connect to the vHub.
 
 - Subnet map: `architecture/network-topology.md`
 - Routing constraints: `architecture/limitations-and-tradeoffs.md`
+- [Traffic flows](traffic-flows.md)
+- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
+- [Networking modules](../modules/networking.md)
+

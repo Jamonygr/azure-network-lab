@@ -1,5 +1,10 @@
 # Naming conventions
 
+<p align="center">
+  <img src="../images/reference-naming-conventions.svg" alt="Naming conventions banner" width="1000" />
+</p>
+
+
 Resource names are derived from `ctx.project` using a lowercase prefix:
 
 ```hcl
@@ -46,3 +51,10 @@ Required tags are enforced by the tags module:
 - Project
 - ManagedBy
 - Purpose
+
+## Related pages
+
+- [Variables reference](variables.md)
+- [Current config (lab profile)](current-config.md)
+- [Glossary](glossary.md)
+- [Architecture overview](../architecture/overview.md)

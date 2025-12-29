@@ -1,5 +1,10 @@
 # Compute modules
 
+<p align="center">
+  <img src="../images/modules-compute.svg" alt="Compute modules banner" width="1000" />
+</p>
+
+
 ## vm-windows
 
 Creates a Windows Server 2022 Datacenter Core VM with:
@@ -27,3 +32,10 @@ Creates a Windows Server 2022 Datacenter Core VM used as an RRAS NVA:
 
 - Install IIS on workload VMs for LB/App Gateway testing.
 - Add additional data disks or NICs for multi-homed NVA scenarios.
+
+## Related pages
+
+- [Scenario: Full lab build](../scenarios/full-lab.md)
+- [Component checks](../testing/component-checks.md)
+- [Variables reference](../reference/variables.md)
+- [Security model](../architecture/security-model.md)

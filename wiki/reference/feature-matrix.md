@@ -1,5 +1,10 @@
 # Feature matrix
 
+<p align="center">
+  <img src="../images/reference-feature-matrix.svg" alt="Feature matrix banner" width="1000" />
+</p>
+
+
 This table maps `deploy` flags to the modules and resources they enable.
 
 | Deploy flag | Modules | Key resources | Notes |
@@ -24,3 +29,10 @@ This table maps `deploy` flags to the modules and resources they enable.
 
 - vHub connections are controlled by `locals.vhub_connections_enabled` to handle the Route Server constraint.
 - NSGs, VNets, and resource group are always created regardless of toggles.
+
+## Related pages
+
+- [Lab scenarios](../scenarios/README.md)
+- [Defaults and SKUs](defaults-and-skus.md)
+- [Cost model](cost-model.md)
+- [Variables reference](variables.md)

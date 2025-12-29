@@ -1,5 +1,10 @@
 # Traffic flows
 
+<p align="center">
+  <img src="../images/architecture-traffic-flows.svg" alt="Traffic flows banner" width="1000" />
+</p>
+
+
 This page describes the most common paths in the lab. All flows depend on the `deploy` toggles and whether Route Server is enabled.
 
 ## Flow summary
@@ -30,3 +35,8 @@ This page describes the most common paths in the lab. All flows depend on the `d
 - Core fabric: `architecture/vwan-and-vhub.md`
 - Routing details: `architecture/routing-and-bgp.md`
 - Private DNS details: `architecture/dns-and-private-link.md`
+- [Network topology](network-topology.md)
+- [Firewall and routing intent](firewall-and-routing-intent.md)
+- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
+- [Component checks](../testing/component-checks.md)
+

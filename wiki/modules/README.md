@@ -1,5 +1,10 @@
 # Modules overview
 
+<p align="center">
+  <img src="../images/modules-readme.svg" alt="Modules overview banner" width="1000" />
+</p>
+
+
 Modules are thin, single-responsibility building blocks. The root module controls feature flags and wiring; modules focus on a specific resource group of Azure services.
 
 ## Conventions
@@ -34,3 +39,8 @@ Modules are thin, single-responsibility building blocks. The root module control
 - Networking details: `modules/networking.md`
 - Compute details: `modules/compute.md`
 - Security details: `modules/security.md`
+
+## Related pages
+
+- [Architecture overview](../architecture/overview.md)
+- [Terraform patterns](../reference/terraform-patterns.md)

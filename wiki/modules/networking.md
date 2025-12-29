@@ -1,5 +1,10 @@
 # Networking modules
 
+<p align="center">
+  <img src="../images/modules-networking.svg" alt="Networking modules banner" width="1000" />
+</p>
+
+
 These modules are the core of the lab. They map directly to Azure networking services and expose the minimum inputs needed for a predictable build.
 
 ## Virtual WAN and hub
@@ -86,3 +91,10 @@ These modules are the core of the lab. They map directly to Azure networking ser
 ### private-dns-zone
 - Creates private DNS zones and links VNets.
 - Supports auto-registration for `lab.internal`.
+
+## Related pages
+
+- [Network topology](../architecture/network-topology.md)
+- [vWAN and vHub](../architecture/vwan-and-vhub.md)
+- [Variables reference](../reference/variables.md)
+- [Ports and protocols](../reference/ports-and-protocols.md)

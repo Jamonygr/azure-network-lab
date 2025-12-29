@@ -1,5 +1,10 @@
 # Security modules
 
+<p align="center">
+  <img src="../images/modules-security.svg" alt="Security modules banner" width="1000" />
+</p>
+
+
 ## tags
 
 - Enforces required tags: Environment, Project, ManagedBy, Purpose.
@@ -20,3 +25,8 @@
 
 - Security model: `architecture/security-model.md`
 - Hardening: `reference/hardening.md`
+- [Security model](../architecture/security-model.md)
+- [Firewall and routing intent](../architecture/firewall-and-routing-intent.md)
+- [Hardening checklist](../reference/hardening.md)
+- [Ports and protocols](../reference/ports-and-protocols.md)
+

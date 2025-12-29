@@ -1,5 +1,10 @@
 # Limitations and tradeoffs
 
+<p align="center">
+  <img src="../images/architecture-limitations-and-tradeoffs.svg" alt="Limitations and tradeoffs banner" width="1000" />
+</p>
+
+
 This lab is optimized for learning and repeatable builds. The items below are intentional tradeoffs to keep the environment small and understandable.
 
 ## Architectural constraints
@@ -37,3 +42,8 @@ This lab is optimized for learning and repeatable builds. The items below are in
 
 - Hardening checklist: `reference/hardening.md`
 - State guidance: `reference/state-and-secrets.md`
+- [Scenario: Minimal cost lab](../scenarios/minimal-cost.md)
+- [Cost model](../reference/cost-model.md)
+- [Architecture overview](overview.md)
+- [Feature matrix](../reference/feature-matrix.md)
+

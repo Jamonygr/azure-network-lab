@@ -1,5 +1,10 @@
 # Azure Network Lab documentation
 
+<p align="center">
+  <img src="images/readme.svg" alt="Azure Network Lab documentation banner" width="1000" />
+</p>
+
+
 Azure Network Lab is a vWAN-centric Terraform lab focused on AZ-700 networking skills. The docs are structured like a small wiki: short pages, cross-links, and deep testing notes so you can explore topics the way you would on Wikipedia.
 
 ## Project quick facts

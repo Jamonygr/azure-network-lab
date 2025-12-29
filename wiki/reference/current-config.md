@@ -1,5 +1,10 @@
 # Current config (lab profile)
 
+<p align="center">
+  <img src="../images/reference-current-config.svg" alt="Current config (lab profile) banner" width="1000" />
+</p>
+
+
 This page mirrors the current values in `terraform.tfvars` but redacts secrets. Update this page whenever the lab profile changes.
 
 ## ctx
@@ -49,3 +54,10 @@ This page mirrors the current values in `terraform.tfvars` but redacts secrets. 
 ## security note
 
 Do not copy passwords or shared keys into this page. Keep secrets in `terraform.tfvars` or a secure secret store.
+
+## Related pages
+
+- [Variables reference](variables.md)
+- [Scenario: Full lab build](../scenarios/full-lab.md)
+- [Lab testing guide](../testing/lab-testing-guide.md)
+- [Feature matrix](feature-matrix.md)

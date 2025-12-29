@@ -1,5 +1,10 @@
 # Scenario: Full lab build
 
+<p align="center">
+  <img src="../images/scenarios-full-lab.svg" alt="Scenario: Full lab build banner" width="1000" />
+</p>
+
+
 ## Goal
 
 Deploy all optional components to exercise the full range of AZ-700 topics in this repo.
@@ -63,3 +68,10 @@ az network vpn-connection show -g rg-<prefix> -n conn-onprem-to-vhub-<prefix> -o
 
 - This profile is the highest cost and can take the longest to provision.
 - Spoke1 will not connect to the vHub when Route Server is enabled.
+
+## Related pages
+
+- [Current config (lab profile)](../reference/current-config.md)
+- [Lab testing guide](../testing/lab-testing-guide.md)
+- [Feature matrix](../reference/feature-matrix.md)
+- [Architecture overview](../architecture/overview.md)

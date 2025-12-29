@@ -1,5 +1,10 @@
 # Route validation
 
+<p align="center">
+  <img src="../images/testing-route-validation.svg" alt="Route validation banner" width="1000" />
+</p>
+
+
 Use these checks to validate routing and next-hop behavior. Replace `<prefix>` with your `ctx.project`.
 
 ## Get VM and NIC IDs
@@ -44,3 +49,10 @@ az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix> -o tabl
 - Network Watcher may be required for next-hop tests in some regions.
 - When Route Server is enabled, Spoke1 routes to Spoke2 via peering.
 - When Route Server is disabled, Spoke1 routes to Spoke2 via the vHub.
+
+## Related pages
+
+- [Routing and BGP](../architecture/routing-and-bgp.md)
+- [Scenario: VPN and BGP](../scenarios/vpn-bgp.md)
+- [Scenario: Route Server and NVA (BGP)](../scenarios/route-server-bgp.md)
+- [ASNs and IPs](../reference/asn-and-ips.md)

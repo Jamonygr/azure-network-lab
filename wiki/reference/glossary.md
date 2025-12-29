@@ -1,5 +1,10 @@
 # Glossary
 
+<p align="center">
+  <img src="../images/reference-glossary.svg" alt="Glossary banner" width="1000" />
+</p>
+
+
 Short definitions of the terms used throughout this lab.
 
 ## Core networking
@@ -35,3 +40,10 @@ Short definitions of the terms used throughout this lab.
 - **NAT Gateway**: Managed NAT service for outbound traffic.
 - **Application Gateway**: Layer 7 load balancer with WAF capability.
 - **Load Balancer**: Layer 4 load balancer for TCP/UDP traffic.
+
+## Related pages
+
+- [AZ-700 alignment](az-700-alignment.md)
+- [Architecture overview](../architecture/overview.md)
+- [Variables reference](variables.md)
+- [Ports and protocols](ports-and-protocols.md)

@@ -1,5 +1,10 @@
 # Cost model
 
+<p align="center">
+  <img src="../images/reference-cost-model.svg" alt="Cost model banner" width="1000" />
+</p>
+
+
 Costs vary by region and time. Use the Azure Pricing Calculator for precise estimates, and treat this page as a guide to the biggest cost drivers.
 
 ## Major cost drivers
@@ -29,3 +34,8 @@ Costs vary by region and time. Use the Azure Pricing Calculator for precise esti
 
 - `reference/hardening.md`
 - `testing/lab-testing-guide.md`
+- [Scenario: Minimal cost lab](../scenarios/minimal-cost.md)
+- [Defaults and SKUs](defaults-and-skus.md)
+- [Feature matrix](feature-matrix.md)
+- [Current config (lab profile)](current-config.md)
+

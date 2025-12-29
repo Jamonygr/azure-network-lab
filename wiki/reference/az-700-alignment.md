@@ -1,5 +1,10 @@
 # AZ-700 alignment
 
+<p align="center">
+  <img src="../images/reference-az-700-alignment.svg" alt="AZ-700 alignment banner" width="1000" />
+</p>
+
+
 This page maps the lab to the AZ-700 skills measured. The official outline can change, so use this as a guide and check the Microsoft exam page for updates.
 
 ## Design and implement core networking infrastructure
@@ -78,3 +83,10 @@ Key docs:
 | Routing | `deploy.vhub_firewall`, `deploy.route_server`, `deploy.vpn` |
 | Secure and monitor | `deploy.vhub_firewall`, `deploy.private_endpoint`, `deploy.private_dns_zones` |
 | Hybrid | `deploy.vpn`, `deploy.onprem_vms`, `deploy.nvas` |
+
+## Related pages
+
+- [Lab scenarios](../scenarios/README.md)
+- [Feature matrix](feature-matrix.md)
+- [Lab testing guide](../testing/lab-testing-guide.md)
+- [Glossary](glossary.md)

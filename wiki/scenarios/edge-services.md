@@ -1,5 +1,10 @@
 # Scenario: Edge services (LB, NAT, App Gateway, Bastion)
 
+<p align="center">
+  <img src="../images/scenarios-edge-services.svg" alt="Scenario: Edge services (LB, NAT, App Gateway, Bastion) banner" width="1000" />
+</p>
+
+
 ## Goal
 
 Validate optional edge services in Spoke1: internal load balancer, NAT gateway, application gateway, and Bastion.
@@ -54,3 +59,10 @@ az vm run-command invoke -g rg-<prefix> -n vm-spoke1-2 \
 - Replace `<prefix>` with `ctx.project`.
 - The App Gateway module creates an empty backend pool by default.
 - Use outputs for `load_balancer_frontend_ip` and `application_gateway_public_ip`.
+
+## Related pages
+
+- [Edge services](../architecture/edge-services.md)
+- [Defaults and SKUs](../reference/defaults-and-skus.md)
+- [Security modules](../modules/security.md)
+- [Component checks](../testing/component-checks.md)

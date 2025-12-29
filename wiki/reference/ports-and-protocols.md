@@ -1,5 +1,10 @@
 # Ports and protocols
 
+<p align="center">
+  <img src="../images/reference-ports-and-protocols.svg" alt="Ports and protocols banner" width="1000" />
+</p>
+
+
 This page lists the common ports and protocols used in lab tests. Some traffic is handled by Azure-managed services and does not traverse VM NSGs.
 
 ## Lab traffic ports
@@ -19,3 +24,10 @@ This page lists the common ports and protocols used in lab tests. Some traffic i
 - BGP sessions are configured by the NVA and VPN gateways; NSG rules do not govern Route Server or VPN gateways.
 - If Bastion is enabled, management access flows through HTTPS (443) via the Azure Portal.
 - Adjust NSG rules carefully if you are validating firewall or routing behavior.
+
+## Related pages
+
+- [Firewall and routing intent](../architecture/firewall-and-routing-intent.md)
+- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
+- [Hardening checklist](hardening.md)
+- [Troubleshooting](../testing/troubleshooting.md)

@@ -1,5 +1,10 @@
 # Test matrix
 
+<p align="center">
+  <img src="../images/testing-test-matrix.svg" alt="Test matrix banner" width="1000" />
+</p>
+
+
 Use this matrix to pick tests based on enabled features. Each row lists the minimum toggle and a quick validation command.
 
 | Component | Toggle | Validation |
@@ -26,3 +31,10 @@ Use this matrix to pick tests based on enabled features. Each row lists the mini
 - Replace placeholders with outputs from `terraform output`.
 - Some tests require running commands inside a VM via RunCommand.
 - Use `testing/troubleshooting.md` for common failure patterns.
+
+## Related pages
+
+- [Lab testing guide](lab-testing-guide.md)
+- [Lab scenarios](../scenarios/README.md)
+- [Feature matrix](../reference/feature-matrix.md)
+- [Outputs reference](../reference/outputs.md)

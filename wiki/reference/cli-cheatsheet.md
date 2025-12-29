@@ -1,5 +1,10 @@
 # CLI cheat sheet
 
+<p align="center">
+  <img src="../images/reference-cli-cheatsheet.svg" alt="CLI cheat sheet banner" width="1000" />
+</p>
+
+
 Quick commands for common lab operations. Replace `<prefix>` with your `ctx.project` value.
 
 ## Terraform
@@ -69,3 +74,10 @@ az vm run-command invoke -g rg-<prefix> -n vm-spoke1-1 \
 ```bash
 terraform destroy -auto-approve
 ```
+
+## Related pages
+
+- [Troubleshooting](../testing/troubleshooting.md)
+- [Component checks](../testing/component-checks.md)
+- [Outputs reference](outputs.md)
+- [Variables reference](variables.md)

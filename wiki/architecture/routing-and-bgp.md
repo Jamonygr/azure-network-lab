@@ -1,5 +1,10 @@
 # Routing and BGP
 
+<p align="center">
+  <img src="../images/architecture-routing-and-bgp.svg" alt="Routing and BGP banner" width="1000" />
+</p>
+
+
 This lab exercises two routing planes: vWAN/vHub routing for hub-and-spoke traffic and BGP for dynamic route exchange. The goal is to make the routing behavior visible and testable without adding complex custom route tables.
 
 ## Routing planes
@@ -59,3 +64,7 @@ az network vhub gateway show -g rg-<prefix> -n vpngw-vhub-<prefix> -o table
 - Traffic flows: `architecture/traffic-flows.md`
 - VPN scenario: `scenarios/vpn-bgp.md`
 - Route Server scenario: `scenarios/route-server-bgp.md`
+- [vWAN and vHub](vwan-and-vhub.md)
+- [Scenario: VPN and BGP](../scenarios/vpn-bgp.md)
+- [ASNs and IPs](../reference/asn-and-ips.md)
+

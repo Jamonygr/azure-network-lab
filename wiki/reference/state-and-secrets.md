@@ -1,5 +1,10 @@
 # State and secrets
 
+<p align="center">
+  <img src="../images/reference-state-and-secrets.svg" alt="State and secrets banner" width="1000" />
+</p>
+
+
 This lab uses local state by default. For shared or long-lived labs, move state to Azure Storage and treat credentials as secrets.
 
 ## Local state (default)
@@ -37,3 +42,10 @@ terraform {
 
 - Store admin credentials in a password manager or Key Vault.
 - Use a dedicated subscription for labs to limit blast radius.
+
+## Related pages
+
+- [Variables reference](variables.md)
+- [Hardening checklist](hardening.md)
+- [Current config (lab profile)](current-config.md)
+- [Outputs reference](outputs.md)

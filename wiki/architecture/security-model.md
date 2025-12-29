@@ -1,5 +1,10 @@
 # Security model
 
+<p align="center">
+  <img src="../images/architecture-security-model.svg" alt="Security model banner" width="1000" />
+</p>
+
+
 The lab uses layered security with a focus on visibility and learning, not strict lockdown. The defaults are intentionally permissive to make lab testing easy, but the hardening checklist explains how to tighten them.
 
 ## Layers of protection
@@ -55,3 +60,10 @@ Current firewall policy behavior (lab default):
 - Use Bastion when enabled for administrative access.
 - Rotate admin passwords and VPN shared keys.
 - For real-world hardening steps, see `reference/hardening.md`.
+
+## Related pages
+
+- [Firewall and routing intent](firewall-and-routing-intent.md)
+- [Hardening checklist](../reference/hardening.md)
+- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
+- [Ports and protocols](../reference/ports-and-protocols.md)
