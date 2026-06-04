@@ -227,13 +227,13 @@ locals {
     spoke1 = {
       name                      = "conn-spoke1-${local.prefix}"
       vnet_key                  = "spoke1"
-      internet_security_enabled = true
+      internet_security_enabled = var.deploy.vhub_firewall
       enabled                   = var.deploy.vwan && !var.deploy.route_server
     }
     spoke2 = {
       name                      = "conn-spoke2-${local.prefix}"
       vnet_key                  = "spoke2"
-      internet_security_enabled = true
+      internet_security_enabled = var.deploy.vhub_firewall
       enabled                   = var.deploy.vwan
     }
   }
@@ -251,32 +251,32 @@ locals {
 
   vm_windows = {
     "spoke1-1" = {
-      name                  = "vm-spoke1-1"
-      vnet_key              = "spoke1"
-      subnet_name           = "Workload"
-      join_lb_backend_pool  = var.deploy.load_balancer
-      enabled               = var.deploy.spoke1_vms
+      name                 = "vm-spoke1-1"
+      vnet_key             = "spoke1"
+      subnet_name          = "Workload"
+      join_lb_backend_pool = var.deploy.load_balancer
+      enabled              = var.deploy.spoke1_vms
     }
     "spoke1-2" = {
-      name                  = "vm-spoke1-2"
-      vnet_key              = "spoke1"
-      subnet_name           = "Workload"
-      join_lb_backend_pool  = var.deploy.load_balancer
-      enabled               = var.deploy.spoke1_vms
+      name                 = "vm-spoke1-2"
+      vnet_key             = "spoke1"
+      subnet_name          = "Workload"
+      join_lb_backend_pool = var.deploy.load_balancer
+      enabled              = var.deploy.spoke1_vms
     }
     "spoke2-1" = {
-      name                  = "vm-spoke2-1"
-      vnet_key              = "spoke2"
-      subnet_name           = "Workload"
-      join_lb_backend_pool  = false
-      enabled               = var.deploy.spoke2_vms
+      name                 = "vm-spoke2-1"
+      vnet_key             = "spoke2"
+      subnet_name          = "Workload"
+      join_lb_backend_pool = false
+      enabled              = var.deploy.spoke2_vms
     }
     "onprem-1" = {
-      name                  = "vm-onprem-1"
-      vnet_key              = "onprem"
-      subnet_name           = "Default"
-      join_lb_backend_pool  = false
-      enabled               = var.deploy.onprem_vms
+      name                 = "vm-onprem-1"
+      vnet_key             = "onprem"
+      subnet_name          = "Default"
+      join_lb_backend_pool = false
+      enabled              = var.deploy.onprem_vms
     }
   }
 
@@ -299,21 +299,21 @@ locals {
     }
   }
 
-  route_server_bgp_connections = {
+  route_server_bgp_connections = var.deploy.nvas ? {
     "spoke1-nva" = {
       peer_ip  = "10.1.8.10"
       peer_asn = 65501
     }
-  }
+  } : {}
 
   vnet_link_keys = ["spoke1", "spoke2", "onprem"]
 
   // Filtered maps for for_each.
-  vhub_connections_enabled   = { for k, v in local.vhub_connections : k => v if v.enabled }
-  private_dns_zones_enabled  = var.deploy.private_dns_zones ? local.private_dns_zones : {}
-  vm_windows_enabled         = { for k, v in local.vm_windows : k => v if v.enabled }
-  vm_nva_enabled             = var.deploy.nvas ? local.vm_nva : {}
-  vnet_peerings_enabled      = var.deploy.route_server ? local.vnet_peerings : {}
+  vhub_connections_enabled  = { for k, v in local.vhub_connections : k => v if v.enabled }
+  private_dns_zones_enabled = var.deploy.private_dns_zones ? local.private_dns_zones : {}
+  vm_windows_enabled        = { for k, v in local.vm_windows : k => v if v.enabled }
+  vm_nva_enabled            = var.deploy.nvas ? local.vm_nva : {}
+  vnet_peerings_enabled     = var.deploy.route_server ? local.vnet_peerings : {}
 
   // Derived values.
   ctx = {
@@ -324,10 +324,10 @@ locals {
 
   project_tag                 = try(module.tags.tags["Project"], "")
   storage_account_name_prefix = "st${lower(replace(local.project_tag, "-", ""))}"
-  vwan_id                      = try(module.vwan[0].id, null)
-  vhub_id                      = try(module.vhub[0].id, null)
-  vhub_bgp_settings            = try(module.vhub_vpn_gateway[0].bgp_settings, [])
-  vhub_bgp_instance0           = try(local.vhub_bgp_settings[0].instance_0_bgp_peering_address[0], null)
-  vhub_gateway_tunnel_ip  = try(local.vhub_bgp_instance0.tunnel_ips[0], null)
-  vhub_gateway_default_ip = try(local.vhub_bgp_instance0.default_ips[0], null)
+  vwan_id                     = try(module.vwan[0].id, null)
+  vhub_id                     = try(module.vhub[0].id, null)
+  vhub_bgp_settings           = try(module.vhub_vpn_gateway[0].bgp_settings, [])
+  vhub_bgp_instance0          = try(local.vhub_bgp_settings[0].instance_0_bgp_peering_address[0], null)
+  vhub_gateway_tunnel_ip      = try(local.vhub_bgp_instance0.tunnel_ips[0], null)
+  vhub_gateway_default_ip     = try(local.vhub_bgp_instance0.default_ips[0], null)
 }

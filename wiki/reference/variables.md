@@ -73,7 +73,7 @@ Notes:
 
 - `deploy.vhub_firewall` requires `deploy.vwan = true`.
 - `deploy.vpn` requires `deploy.vwan = true`.
-- `deploy.private_endpoint` should be paired with `deploy.private_dns_zones`.
+- `deploy.private_endpoint` can run without `deploy.private_dns_zones`, but automatic private endpoint name resolution requires both flags.
 
 ## Example `terraform.tfvars`
 

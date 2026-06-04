@@ -25,7 +25,7 @@ This lab exercises two routing planes: vWAN/vHub routing for hub-and-spoke traff
 ## Route Server path (Spoke1)
 
 - Route Server lives in `RouteServerSubnet` in Spoke1.
-- RRAS NVA (10.1.8.10) peers with the Route Server IPs.
+- RRAS NVA (10.1.8.10) peers with the Route Server IPs when `deploy.nvas = true`.
 - The NVA advertises custom routes (default: `10.100.0.0/16`).
 - Branch-to-branch traffic is enabled to allow BGP route exchange.
 
@@ -38,7 +38,7 @@ This lab exercises two routing planes: vWAN/vHub routing for hub-and-spoke traff
 ## Propagation expectations
 
 - When VPN is enabled, on-prem address space is advertised into vHub.
-- When Route Server is enabled, NVA routes appear on Route Server peers.
+- When Route Server and NVAs are enabled, NVA routes appear on Route Server peers.
 - Spoke2 learns routes via the vHub connection when vWAN is enabled.
 
 ## Validation commands

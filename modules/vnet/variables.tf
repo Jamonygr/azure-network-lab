@@ -21,9 +21,9 @@ variable "address_space" {
 variable "subnets" {
   description = "Map of subnets to create"
   type = map(object({
-    address_prefix    = string
-    service_endpoints = optional(list(string), [])
-    private_endpoint_network_policies = optional(string)
+    address_prefix                    = string
+    service_endpoints                 = optional(list(string), [])
+    private_endpoint_network_policies = optional(string, "Enabled")
     delegation = optional(object({
       name         = string
       service_name = string
@@ -31,6 +31,14 @@ variable "subnets" {
     }))
   }))
   default = {}
+
+  validation {
+    condition = alltrue([
+      for subnet in values(var.subnets) :
+      contains(["Disabled", "Enabled", "NetworkSecurityGroupEnabled", "RouteTableEnabled"], subnet.private_endpoint_network_policies)
+    ])
+    error_message = "private_endpoint_network_policies must be one of Disabled, Enabled, NetworkSecurityGroupEnabled, or RouteTableEnabled."
+  }
 }
 
 variable "ctx" {

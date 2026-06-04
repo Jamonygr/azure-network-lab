@@ -16,7 +16,7 @@ Created by `modules/route-server`:
 - Branch-to-branch traffic enabled.
 - BGP peers are defined by `locals.route_server_bgp_connections`.
 
-Default BGP peer:
+Default BGP peer when `deploy.nvas = true`:
 
 - Peer IP: 10.1.8.10 (Spoke1 NVA).
 - Peer ASN: 65501.
@@ -43,7 +43,7 @@ Logs are written to `C:\rras-config.log`.
 
 ## BGP behavior
 
-- BGP peers are created only when Route Server IPs are available.
+- BGP peers are created only when `deploy.nvas = true` and Route Server IPs are available.
 - Default advertised routes are provided by `locals.vm_nva.advertised_routes`.
 - Route Server ASN is 65515; NVA ASN is 65501.
 

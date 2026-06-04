@@ -48,9 +48,9 @@ vm_windows_enabled = { for k, v in local.vm_windows : k => v if v.enabled }
 
 ## Key toggle behaviors
 
-- `deploy.route_server`: enables Route Server and NVA BGP, disables Spoke1 vHub connection.
+- `deploy.route_server`: enables Route Server, adds NVA BGP peers when `deploy.nvas = true`, and disables the Spoke1 vHub connection.
 - `deploy.vpn`: enables both the vHub VPN Gateway and the on-prem VPN gateway.
-- `deploy.private_endpoint`: creates storage + private endpoint; requires `deploy.private_dns_zones`.
+- `deploy.private_endpoint`: creates storage + private endpoint; links a DNS zone group when `deploy.private_dns_zones` is also enabled.
 
 ## Example flow: Route Server
 

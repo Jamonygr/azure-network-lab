@@ -39,29 +39,29 @@ variable "deploy" {
   description = "Master switches to control which services to deploy"
   type = object({
     // Core Networking
-    vwan          = bool  // Virtual WAN + Virtual Hub
-    vhub_firewall = bool  // Azure Firewall in Virtual Hub (Secured Hub)
-    vpn           = bool  // VPN Gateways + Site-to-Site VPN
-    route_server  = bool  // Azure Route Server + BGP
+    vwan          = bool // Virtual WAN + Virtual Hub
+    vhub_firewall = bool // Azure Firewall in Virtual Hub (Secured Hub)
+    vpn           = bool // VPN Gateways + Site-to-Site VPN
+    route_server  = bool // Azure Route Server + BGP
 
     // DNS & Security
-    dns_resolver      = bool  // DNS Private Resolver
-    private_dns_zones = bool  // Private DNS Zones
-    bastion           = bool  // Azure Bastion (secure VM access)
+    dns_resolver      = bool // DNS Private Resolver
+    private_dns_zones = bool // Private DNS Zones
+    bastion           = bool // Azure Bastion (secure VM access)
 
     // Load Balancing
-    application_gateway = bool  // Application Gateway (WAF/L7)
-    load_balancer       = bool  // Internal Load Balancer (L4)
-    nat_gateway         = bool  // NAT Gateway (outbound)
+    application_gateway = bool // Application Gateway (WAF/L7)
+    load_balancer       = bool // Internal Load Balancer (L4)
+    nat_gateway         = bool // NAT Gateway (outbound)
 
     // Storage & Private Endpoints
-    private_endpoint = bool  // Storage Account + Private Endpoint
+    private_endpoint = bool // Storage Account + Private Endpoint
 
     // Virtual Machines
-    spoke1_vms = bool  // VMs in Spoke1 VNet
-    spoke2_vms = bool  // VMs in Spoke2 VNet
-    onprem_vms = bool  // VMs in OnPrem VNet
-    nvas       = bool  // Network Virtual Appliances (RRAS/BGP)
+    spoke1_vms = bool // VMs in Spoke1 VNet
+    spoke2_vms = bool // VMs in Spoke2 VNet
+    onprem_vms = bool // VMs in OnPrem VNet
+    nvas       = bool // Network Virtual Appliances (RRAS/BGP)
   })
 
   default = {

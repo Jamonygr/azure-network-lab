@@ -104,7 +104,7 @@ output "storage_account_name" {
 
 output "private_endpoint_storage_ip" {
   description = "Private IP of the storage Private Endpoint"
-  value       = var.deploy.private_endpoint && var.deploy.private_dns_zones ? module.private_endpoint_storage[0].private_ip_address : null
+  value       = var.deploy.private_endpoint ? module.private_endpoint_storage[0].private_ip_address : null
 }
 
 output "route_server_id" {
@@ -132,13 +132,13 @@ output "connection_info" {
   value = {
     bastion_connect = var.deploy.bastion ? "Connect via Azure Portal -> Bastion -> ${module.bastion[0].name}" : "Bastion not deployed"
     vm_admin_user   = var.admin_username
-    spoke1_vms      = var.deploy.spoke1_vms ? [
+    spoke1_vms = var.deploy.spoke1_vms ? [
       module.vm_windows["spoke1-1"].private_ip_address,
       module.vm_windows["spoke1-2"].private_ip_address
     ] : []
-    spoke1_nva      = var.deploy.nvas ? module.vm_nva["spoke1"].private_ip_address : null
-    spoke2_vms      = var.deploy.spoke2_vms ? [module.vm_windows["spoke2-1"].private_ip_address] : []
-    onprem_vms      = var.deploy.onprem_vms && var.deploy.nvas ? [
+    spoke1_nva = var.deploy.nvas ? module.vm_nva["spoke1"].private_ip_address : null
+    spoke2_vms = var.deploy.spoke2_vms ? [module.vm_windows["spoke2-1"].private_ip_address] : []
+    onprem_vms = var.deploy.onprem_vms && var.deploy.nvas ? [
       module.vm_windows["onprem-1"].private_ip_address,
       module.vm_nva["onprem"].private_ip_address
     ] : (var.deploy.onprem_vms ? [module.vm_windows["onprem-1"].private_ip_address] : [])

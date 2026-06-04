@@ -31,7 +31,7 @@ The vHub is created by `modules/vhub`:
 Spoke VNets connect to the hub using `modules/vhub-connection`:
 
 - Connections are created from `locals.vhub_connections_enabled`.
-- `internet_security_enabled` is set from locals (true in the lab profile).
+- `internet_security_enabled` is set from locals and follows `deploy.vhub_firewall`.
 - Spoke1 connection is disabled when Route Server is enabled.
 
 ## vHub VPN gateway

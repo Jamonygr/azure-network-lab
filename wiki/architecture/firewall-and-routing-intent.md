@@ -41,7 +41,7 @@ This pushes both Internet and private traffic through the firewall when the hub 
 
 ## vHub connections and Internet security
 
-vHub connections are created with `internet_security_enabled = true`. This flag is required for secure hub inspection behavior when the firewall is present.
+vHub connections set `internet_security_enabled` from `deploy.vhub_firewall`. The flag is enabled only when the secured hub firewall is deployed, so non-firewall vHub profiles do not request firewall inspection.
 
 ## Validation commands
 

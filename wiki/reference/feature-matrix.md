@@ -12,9 +12,9 @@ This table maps `deploy` flags to the modules and resources they enable.
 | `deploy.vwan` | `vwan`, `vhub`, `vhub-connection` | Virtual WAN, vHub, vHub connections | Base fabric for hub-and-spoke. |
 | `deploy.vhub_firewall` | `vhub-firewall` | Azure Firewall, firewall policy, routing intent | Requires `deploy.vwan = true`. |
 | `deploy.vpn` | `vhub-vpn-gateway`, `vpn-gateway`, `vpn-site`, `local-network-gateway`, `vpn-connection` | vHub VPN GW, on-prem VPN GW, VPN site/connection | Requires `deploy.vwan = true`. |
-| `deploy.route_server` | `route-server`, `vnet-peering`, `vm-windows-nva` | Route Server, vnet peering, RRAS NVA | Disables Spoke1 vHub connection. |
+| `deploy.route_server` | `route-server`, `vnet-peering` | Route Server, vnet peering | Disables Spoke1 vHub connection; BGP peers require `deploy.nvas = true`. |
 | `deploy.dns_resolver` | `dns-private-resolver` | DNS Private Resolver | Requires delegated subnets in Spoke1. |
-| `deploy.private_dns_zones` | `private-dns-zone` | Private DNS zones and VNet links | Required for private endpoints. |
+| `deploy.private_dns_zones` | `private-dns-zone` | Private DNS zones and VNet links | Required for automatic private endpoint DNS integration. |
 | `deploy.private_endpoint` | `storage-account`, `private-endpoint` | Storage account + private endpoint | Best paired with DNS zones. |
 | `deploy.load_balancer` | `load-balancer` | Internal load balancer | Spoke1 workload subnet. |
 | `deploy.application_gateway` | `application-gateway` | WAF v2 App Gateway | Spoke1 AppGw subnet. |

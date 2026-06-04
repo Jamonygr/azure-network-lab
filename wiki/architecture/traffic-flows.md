@@ -16,7 +16,7 @@ This page describes the most common paths in the lab. All flows depend on the `d
 | Spoke1 -> Spoke2 (Route Server on) | Spoke1 -> VNet peering -> Spoke2 | Spoke1 is not connected to vHub in this mode. |
 | Spoke1 -> Spoke2 (Route Server off) | Spoke1 -> vHub -> Spoke2 | Both spokes connect to vHub when allowed. |
 | Spoke1 NVA -> Route Server | Within Spoke1 | BGP peering inside the VNet. |
-| Storage private endpoint access | VM -> DNS -> Private IP -> Storage | Requires private DNS zones and private endpoint. |
+| Storage private endpoint access | VM -> DNS -> Private IP -> Storage | Requires the private endpoint; automatic name resolution also requires private DNS zones. |
 
 ## Notes on conditional behavior
 

@@ -48,7 +48,7 @@ This lab uses one vHub, two spokes, and an optional on-premises simulation VNet.
 
 | From | To | Connectivity | Notes |
 |------|----|--------------|-------|
-| Spoke2 | vHub | Yes (when vWAN enabled) | vHub connection with internet security enabled. |
+| Spoke2 | vHub | Yes (when vWAN enabled) | vHub connection; internet security follows the firewall toggle. |
 | Spoke1 | vHub | Conditional | Disabled when Route Server is enabled. |
 | Spoke1 | Spoke2 | Conditional | Peered when Route Server is enabled. |
 | OnPrem | vHub | Conditional | Requires `deploy.vpn = true`. |
@@ -56,7 +56,7 @@ This lab uses one vHub, two spokes, and an optional on-premises simulation VNet.
 
 ## Routing notes
 
-- vHub connections are created with `internet_security_enabled = true`.
+- vHub connections enable `internet_security_enabled` only when `deploy.vhub_firewall = true`.
 - When Azure Firewall is enabled, routing intent steers Internet and private traffic through the firewall.
 - VNet peering in this lab does not use gateway transit or remote gateways.
 

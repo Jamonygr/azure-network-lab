@@ -317,7 +317,7 @@ module "storage_account" {
 }
 
 module "private_endpoint_storage" {
-  count  = var.deploy.private_endpoint && var.deploy.private_dns_zones ? 1 : 0
+  count  = var.deploy.private_endpoint ? 1 : 0
   source = "./modules/private-endpoint"
 
   name                           = "pe-storage-${local.prefix}"
