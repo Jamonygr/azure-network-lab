@@ -13,7 +13,7 @@ Azure Network Lab is a vWAN-centric Terraform lab focused on AZ-700 networking s
 |-------|-------|
 | Scope | Single-environment lab with optional hybrid connectivity and private access. |
 | Focus | Virtual WAN, secured hub, BGP, Route Server, private DNS, private endpoints. |
-| IaC | Terraform >= 1.5 with AzureRM ~> 4.14. |
+| IaC | Terraform >= 1.9 with AzureRM 4.x. |
 | Topology | 1 vWAN, 1 vHub (/23), 2 spokes, 1 on-prem simulation VNet. |
 | Compute | Windows Server 2022 Core workload VMs and RRAS NVAs. |
 | State | Local by default (see state guidance for remote options). |

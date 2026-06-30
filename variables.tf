@@ -105,24 +105,44 @@ variable "vhub_address_prefix" {
   description = "Address prefix for the Virtual Hub"
   type        = string
   default     = "10.10.0.0/23"
+
+  validation {
+    condition     = can(cidrnetmask(var.vhub_address_prefix))
+    error_message = "vhub_address_prefix must be a valid CIDR prefix."
+  }
 }
 
 variable "spoke1_address_space" {
   description = "Address space for Spoke1 VNet"
   type        = list(string)
   default     = ["10.1.0.0/16"]
+
+  validation {
+    condition     = length(var.spoke1_address_space) > 0 && alltrue([for cidr in var.spoke1_address_space : can(cidrnetmask(cidr))])
+    error_message = "spoke1_address_space must contain at least one valid CIDR prefix."
+  }
 }
 
 variable "spoke2_address_space" {
   description = "Address space for Spoke2 VNet"
   type        = list(string)
   default     = ["10.2.0.0/16"]
+
+  validation {
+    condition     = length(var.spoke2_address_space) > 0 && alltrue([for cidr in var.spoke2_address_space : can(cidrnetmask(cidr))])
+    error_message = "spoke2_address_space must contain at least one valid CIDR prefix."
+  }
 }
 
 variable "onprem_address_space" {
   description = "Address space for OnPrem VNet"
   type        = list(string)
   default     = ["192.168.0.0/16"]
+
+  validation {
+    condition     = length(var.onprem_address_space) > 0 && alltrue([for cidr in var.onprem_address_space : can(cidrnetmask(cidr))])
+    error_message = "onprem_address_space must contain at least one valid CIDR prefix."
+  }
 }
 
 // =============================================================================
@@ -133,6 +153,11 @@ variable "admin_username" {
   description = "Admin username for all VMs"
   type        = string
   default     = "azureadmin"
+
+  validation {
+    condition     = length(var.admin_username) >= 1 && length(var.admin_username) <= 20 && !contains(["admin", "administrator", "user"], lower(var.admin_username))
+    error_message = "admin_username must be 1-20 characters and must not use common reserved admin names."
+  }
 }
 
 variable "admin_password" {
@@ -163,7 +188,7 @@ variable "vpn_shared_key" {
   default     = ""
 
   validation {
-    condition     = !var.deploy.vpn || length(var.vpn_shared_key) > 0
-    error_message = "vpn_shared_key must be set when deploy.vpn is true."
+    condition     = !var.deploy.vpn || (length(var.vpn_shared_key) >= 12 && length(var.vpn_shared_key) <= 128)
+    error_message = "vpn_shared_key must be 12-128 characters when deploy.vpn is true."
   }
 }

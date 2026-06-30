@@ -1,0 +1,63 @@
+name: Terraform Validate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+      - "codex/**"
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: Format and validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.0
+
+      - name: Terraform format check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        run: terraform init -backend=false -input=false
+
+      - name: Terraform validate
+        run: terraform validate -no-color
+
+  repository-hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Block tracked local Terraform artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
+          tracked="$(git ls-files \
+            '*.tfstate' \
+            '*.tfstate.*' \
+            '*.tfplan' \
+            '*.tfvars' \
+            '*.tfvars.json' \
+            'tfplan' \
+            '.terraform/**' \
+            '*.log' || true)"
+
+          if [[ -n "${tracked}" ]]; then
+            echo "Local Terraform artifacts must not be tracked:"
+            echo "${tracked}"
+            exit 1
+          fi
