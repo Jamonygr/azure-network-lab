@@ -1,0 +1,14 @@
+flowchart LR
+accTitle: Minimal starter network
+accDescr: The minimal profile creates a resource group containing three VNets, their subnets and NSGs. Spoke1 and Spoke2 have bidirectional peering. The Azure-hosted branch has no connection. VMs, gateways, Firewall and paid services remain disabled.
+subgraph RG["MINIMAL PROFILE · one resource group"]
+  direction LR
+  S1["Spoke1<br/>10.1.0.0/16<br/>Subnets + NSGs"] <-->|"VNet peering"| S2["Spoke2<br/>10.2.0.0/16<br/>Subnets + NSGs"]
+  B["Azure-hosted branch<br/>192.168.0.0/16<br/>Subnets + NSGs<br/>No peering"]
+  S2 ~~~ B
+end
+classDef spoke fill:#e9f6fc,stroke:#1683b1,color:#123c53,stroke-width:2px;
+classDef branch fill:#edf6f3,stroke:#399b84,color:#174c40,stroke-width:2px;
+class S1,S2 spoke;
+class B branch;
+style RG fill:#f8fafc,stroke:#c4d8e5,color:#314f65

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="380" viewBox="0 0 1200 380" role="img" aria-labelledby="title desc">
+  <title id="title">Azure Network Lab</title>
+  <desc id="desc">Learn the network. Trace the traffic. An Azure networking learning collection with five AZ-700 exam domains, seven scenario profiles, and seven standalone examples. Decorative connected nodes represent topics, not deployed infrastructure.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#091b30"/><stop offset="1" stop-color="#123b57"/></linearGradient>
+    <linearGradient id="accent"><stop stop-color="#39c7ed"/><stop offset="1" stop-color="#78f0c7"/></linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M 32 0 L 0 0 0 32" fill="none" stroke="#91cae4" stroke-opacity=".055"/></pattern>
+  </defs>
+  <rect width="1200" height="380" rx="24" fill="url(#bg)"/>
+  <rect width="1200" height="380" rx="24" fill="url(#grid)"/>
+  <g font-family="Segoe UI,Arial,sans-serif">
+    <rect x="48" y="40" width="191" height="28" rx="14" fill="#12445b" stroke="#2d7385"/>
+    <text x="64" y="59" font-size="12" font-weight="700" letter-spacing="1.5" fill="#9cebdc">AZ-700 · LEARNING LAB</text>
+    <text x="46" y="133" font-size="54" font-weight="750" letter-spacing="-1.4" fill="#ffffff">Azure Network Lab</text>
+    <rect x="48" y="154" width="72" height="4" rx="2" fill="url(#accent)"/>
+    <text x="48" y="197" font-size="25" fill="#c9e2f0">Learn the network. Trace the traffic.</text>
+    <text x="48" y="231" font-size="17" fill="#a2c0d3">Terraform configurations · visual guides · practical exercises</text>
+    <g fill="#0b263e" stroke="#31566f">
+      <rect x="48" y="276" width="174" height="60" rx="12"/>
+      <rect x="236" y="276" width="174" height="60" rx="12"/>
+      <rect x="424" y="276" width="174" height="60" rx="12"/>
+    </g>
+    <g fill="#78e4ce" font-size="28" font-weight="700"><text x="65" y="315">05</text><text x="253" y="315">07</text><text x="441" y="315">07</text></g>
+    <g fill="#e0eef5" font-size="14"><text x="113" y="302">exam</text><text x="113" y="321">domains</text><text x="301" y="302">scenario</text><text x="301" y="321">profiles</text><text x="489" y="302">standalone</text><text x="489" y="321">examples</text></g>
+    <g fill="none" stroke="#57c9dc" stroke-width="1.8" opacity=".55">
+      <path d="M906 176 L826 91 M906 176 L1042 94 M906 176 L1090 212 M906 176 L969 294 M906 176 L795 282"/>
+      <path d="M826 91 L1042 94 L1090 212 L969 294 L795 282 Z" stroke-dasharray="5 8" opacity=".35"/>
+      <circle cx="906" cy="176" r="90" opacity=".2"/>
+    </g>
+    <circle cx="906" cy="176" r="45" fill="#113c58" stroke="#62e1dc" stroke-width="2"/>
+    <path d="M884 167 L906 155 L928 167 L906 179 Z M884 178 L906 190 L928 178 M884 189 L906 201 L928 189" fill="none" stroke="#9bf3e6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <g fill="#0c2c44" stroke="#4385a0" stroke-width="1.5"><circle cx="826" cy="91" r="11"/><circle cx="1042" cy="94" r="11"/><circle cx="1090" cy="212" r="11"/><circle cx="969" cy="294" r="11"/><circle cx="795" cy="282" r="11"/></g>
+    <g fill="#d2edf5" font-size="15" font-weight="600" text-anchor="middle"><text x="826" y="64">Core networks</text><text x="1042" y="67">Connectivity</text><text x="1090" y="248">Delivery</text><text x="969" y="330">Private access</text><text x="795" y="318">Security</text></g>
+  </g>
+</svg>

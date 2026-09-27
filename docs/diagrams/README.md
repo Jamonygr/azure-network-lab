@@ -4,6 +4,7 @@ Each Mermaid source has a matching rendered SVG with an accessible title and des
 
 | Diagram | Source | Meaning |
 |---|---|---|
+| [minimal-starter](minimal-starter.svg) | [Mermaid](minimal-starter.mmd) | Minimal profile: peered spokes and an isolated branch |
 | [learning-map](learning-map.svg) | [Mermaid](learning-map.mmd) | AZ-700 learning and documentation map |
 | [address-allocation](address-allocation.svg) | [Mermaid](address-allocation.mmd) | Default Azure Network Lab address allocation |
 | [vwan](vwan.svg) | [Mermaid](vwan.mmd) | Virtual WAN secured-hub profile and optional hybrid branch |

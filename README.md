@@ -1,62 +1,92 @@
+<p align="center">
+  <img src="docs/assets/readme-banner.svg" alt="Azure Network Lab — learn the network, trace the traffic. Five AZ-700 domains, seven scenario profiles, seven standalone examples." width="100%">
+</p>
+
 # Azure Network Lab
 
-A Terraform learning repository for **AZ-700: Azure Networking**, aligned to the skills effective **27 July 2026**. Start with a small network-only profile, then study isolated routing, private access, delivery, and security configurations.
+Explore Azure networking with **Terraform, diagrams, and guided exercises**. AZ-700 skills baseline: **27 July 2026**.
 
-**Azure deployment and live tests: NOT RUN.** This update is authored and checked locally. Diagrams show intended configurations, and example evidence is explicitly synthetic. See [validation status](docs/validation-status.md) for the checks actually completed.
-
-![Learning paths, profiles, independent examples, and evidence boundaries](docs/diagrams/learning-map.svg)
-
-*Read by exam domain, then select one configuration. A configuration is not proof that Azure accepted it or that traffic passed.*
+**[Start learning →](wiki/book.md)** · **[Choose a lab](#choose-a-footprint)** · **[Browse the wiki](wiki/README.md)** · **[Objective map](wiki/reference/az-700-alignment.md)**
 
 ## Start here
 
-1. Read the [five-domain book](wiki/book.md) and [objective coverage matrix](wiki/reference/az-700-alignment.md).
-2. Inspect [profiles/minimal.tfvars.example](profiles/minimal.tfvars.example). The default excludes VMs, gateways, Firewall, Route Server, resolver endpoints, and other optional paid services.
-3. Review [costs](wiki/reference/cost-model.md), [state isolation](wiki/reference/state-and-secrets.md), and the [local checks](wiki/testing/lab-testing-guide.md).
-4. Choose a [scenario](wiki/scenarios/README.md). Future Azure commands are reference instructions only; they were not executed for this update.
+Start with [minimal](profiles/minimal.tfvars.example): three VNets, subnets, NSGs, and spoke peering. No VM password or VPN secret; paid services stay opt-in.
 
-Toolchain: **Terraform 1.16.4**, **AzureRM 4.57.0**, and **PowerShell 7+ (7.4+ recommended)** for local tooling. The runner validates an isolated source-only copy; provider downloads can require Internet access.
+![Minimal profile: Spoke1 and Spoke2 are peered; the Azure-hosted branch is isolated. Each VNet contains subnets and NSGs.](docs/diagrams/minimal-starter.svg)
+
+*The starter reserves service subnets; their names do not enable the services.*
+
+**Local checks:** Terraform `1.16.4` · AzureRM `4.57.0` · PowerShell `7+` · [All prerequisites](wiki/testing/lab-testing-guide.md)
 
 ```powershell
 pwsh ./scripts/Test-Offline.ps1
 ```
 
-Do not run an ordinary Terraform plan as a substitute for offline validation: providers may authenticate, refresh resources, or perform data lookups. Mocked tests must use the supplied test definitions. [Testing guide](wiki/testing/lab-testing-guide.md)
+## Learn by exam domain
+
+| Domain | Explore |
+|---|---|
+| 🌐 **Core networking** | [VNets, addressing, DNS, routing, and monitoring](wiki/domains/01-core.md) |
+| 🔗 **Connectivity** | [VPN, Virtual WAN, Route Server, and ExpressRoute design](wiki/domains/02-connectivity.md) |
+| ⚖️ **Application delivery** | [Load Balancer, Application Gateway, Front Door, and Traffic Manager](wiki/domains/03-delivery.md) |
+| 🔒 **Private access** | [Private endpoints, Private Link service, and service endpoints](wiki/domains/04-private-access.md) |
+| 🛡️ **Network security** | [NSGs, Firewall, WAF, DDoS, and Defender design](wiki/domains/05-security.md) |
+
+[136 mapped objectives](wiki/reference/az-700-alignment.md): Terraform-backed, reference configuration, or design exercise.
 
 ## Choose a footprint
 
-| Root profile | Purpose | Main cost drivers if a reader later deploys it |
-|---|---|---|
-| [minimal](profiles/minimal.tfvars.example) | Address spaces, service subnets, NSGs and spoke peering | Network-only starter; adding services changes the footprint |
-| [vwan-secured](profiles/vwan-secured.tfvars.example) | Hub connections, Firewall policy and routing intent | vHub, Firewall, processing |
-| [hybrid-vpn](profiles/hybrid-vpn.tfvars.example) | Azure-hosted branch simulation and vWAN VPN | Two gateway types, vHub, traffic |
-| [route-server](profiles/route-server.tfvars.example) | BGP control plane and RRAS NVA | Route Server, NVAs, disks, outbound service |
-| [private-dns](profiles/private-dns.tfvars.example) | Resolver, private zones and Blob private endpoint | Resolver endpoints, private endpoint, storage |
-| [application-delivery](profiles/application-delivery.tfvars.example) | Standard internal LB and Application Gateway WAF_v2 | App Gateway, two required backend VMs, outbound |
-| [legacy-combined](profiles/legacy-combined.tfvars.example) | Review the earlier combined teaching topology | Multiple services; never the starter |
+[Scenario guides](wiki/scenarios/README.md) · [Cost planning](wiki/reference/cost-model.md)
 
-Profiles apply to the same root and **do not create separate state automatically**. Use a separate checkout/directory and state per concurrent profile. Switching a profile in existing state can remove resources. The legacy configuration omits Spoke1's vHub connection when Route Server is enabled; that omission prevents an unsupported combination. [Architecture](wiki/architecture/overview.md)
+| Profile | What you explore |
+|---|---|
+| **[minimal](profiles/minimal.tfvars.example)** — start here | Address spaces, subnets, NSGs, and spoke peering |
+| [vwan-secured](profiles/vwan-secured.tfvars.example) | Managed hub, Firewall policy, and routing intent |
+| [hybrid-vpn](profiles/hybrid-vpn.tfvars.example) | Azure-hosted branch simulation and vWAN VPN |
+| [route-server](profiles/route-server.tfvars.example) | BGP route exchange and RRAS network virtual appliances |
+| [private-dns](profiles/private-dns.tfvars.example) | DNS Private Resolver, private zones, and a Blob private endpoint |
+| [application-delivery](profiles/application-delivery.tfvars.example) | Internal Load Balancer, Application Gateway WAF, and two web VMs |
+| [legacy-combined](profiles/legacy-combined.tfvars.example) | The earlier combined teaching topology |
+
+Use [separate state](wiki/reference/state-and-secrets.md) per concurrent profile. Switching profiles in existing state can remove resources.
+
+### See the traffic paths
+
+<details>
+<summary><strong>🌐 Secured Virtual WAN — hub routing and Firewall</strong></summary>
+
+![Virtual WAN: spokes connect to a managed hub, with routing intent through Azure Firewall and an optional VPN branch.](docs/diagrams/vwan.svg)
+
+[Follow the secured-hub exercise →](wiki/scenarios/secured-hub-firewall.md)
+
+</details>
+
+<details>
+<summary><strong>🔀 Route Server — BGP control plane and NVA data path</strong></summary>
+
+![Route Server exchanges BGP routes with the NVA; application traffic crosses the NVA, not Route Server.](docs/diagrams/route-server.svg)
+
+[Follow the BGP exercise →](wiki/scenarios/route-server-bgp.md)
+
+</details>
+
+Separate scenarios. [More architecture diagrams →](docs/diagrams/README.md)
 
 ## Independent examples
 
-Each example is a separate Terraform root with its own README, input file, and state. It does not consume the main root's state.
+Separate Terraform roots, each with its own guide and local state.
 
-| Example | Learning focus |
+| 🌐 Connect and route | 🔒 Protect and isolate |
 |---|---|
-| [AVNM](examples/avnm/README.md) | Network groups, connectivity, security admin rules, routing |
-| [Front Door private origin](examples/front-door-private-origin/README.md) | Premium, WAF, App Service origin, Private Link approval |
-| [Traffic Manager](examples/traffic-manager/README.md) | DNS routing and endpoint health across two regions |
-| [Private Link service](examples/private-link-service/README.md) | Producer load balancer, consumer endpoint, private DNS |
-| [Service endpoint policy](examples/service-endpoint-policy/README.md) | Storage destination restriction with separate data permissions |
-| [Point-to-site VPN](examples/point-to-site-vpn/README.md) | OpenVPN, Entra authentication and client boundaries |
-| [DDoS protection](examples/ddos-protection/README.md) | Opt-in protection plan and monitoring; no attack generation |
+| [Virtual Network Manager](examples/avnm/README.md) — groups and network policies | [Private Link service](examples/private-link-service/README.md) — provider and consumer |
+| [Front Door Premium](examples/front-door-private-origin/README.md) — WAF and private origin | [Service endpoint policy](examples/service-endpoint-policy/README.md) — restricted Storage access |
+| [Traffic Manager](examples/traffic-manager/README.md) — health and DNS routing | [DDoS protection](examples/ddos-protection/README.md) — opt-in plan and monitoring |
+| [Point-to-site VPN](examples/point-to-site-vpn/README.md) — OpenVPN and Entra ID | [Design exercises](wiki/scenarios/design-exercises.md) — externally dependent topics |
 
-ExpressRoute, BYOIP, a third-party Gateway Load Balancer appliance, external VPN equipment, and Defender investigations have [design exercises](wiki/scenarios/design-exercises.md). Their presence in the curriculum does not claim deployment coverage.
+## Validation and reference
 
-## Documentation and contribution
+**Local validation passed · Azure deployment and live tests: NOT RUN.** [Results and scope →](docs/validation-status.md)
 
-- [Wiki navigation](wiki/README.md) · [Architecture](wiki/architecture/overview.md) · [Scenarios](wiki/scenarios/README.md)
-- [Generated interfaces](reference/README.md) · [Variables](wiki/reference/variables.md) · [Lifecycle changes](wiki/reference/defaults-and-skus.md) · [Troubleshooting](wiki/testing/troubleshooting.md)
-- [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [MIT license](LICENSE)
+[Terraform reference](reference/README.md) · [Variables](wiki/reference/variables.md) · [Troubleshooting](wiki/testing/troubleshooting.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [MIT license](LICENSE)
 
-The [official Microsoft study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700) remains the exam authority. This repository is a teaching aid, not a claim of exam completeness or production readiness.
+Exam scope: [official Microsoft AZ-700 study guide](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700).
