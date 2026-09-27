@@ -1,139 +1,54 @@
-# Lab testing guide
+# Local checks and future evidence
 
-<p align="center">
-  <img src="../images/testing-lab-testing-guide.svg" alt="Lab testing guide banner" width="1000" />
-</p>
+**Azure deployment, resource queries, guest execution and traffic validation: NOT RUN.** Local checks establish syntax, schema, intended relationships and documentation quality. They cannot establish Azure acceptance or connectivity.
 
+## Supported local entry point
 
-Use this checklist after `terraform apply` to confirm the lab is working. Run only the sections that match the features you enabled.
+Run from the repository with the required local tools:
 
-## Pre-flight
-
-```bash
-terraform output
-az account show -o table
-az group show -g rg-<prefix> -o table
+```powershell
+pwsh ./scripts/Test-Offline.ps1
 ```
 
-## vWAN and vHub
+The runner's isolated source-copy boundary prevents ignored local tfvars/state from becoming test inputs. It uses the supplied mocked tests rather than a normal cloud-aware plan. Inspect PASS/FAIL/SKIP results; missing optional tools are not proof that their checks passed. Exact results are recorded in [validation status](../../docs/validation-status.md).
 
-```bash
-az network vwan show -g rg-<prefix> -n vwan-<prefix> -o table
-az network vhub show -g rg-<prefix> -n vhub-<prefix> -o table
-az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix> -o table
+The reference generator is a separate local authoring command:
+
+```powershell
+pwsh ./scripts/Update-TerraformReference.ps1
 ```
 
-Expected:
+Review generated Markdown changes. Do not replace offline tests with `az login`, `terraform plan`, refresh, import, apply or destroy. Backend-disabled initialization alone does not make a subsequent ordinary plan cloud-free.
 
-- vWAN and vHub are Succeeded.
-- Spoke2 connection exists when `deploy.vwan = true`.
-- Spoke1 connection exists only when Route Server is disabled.
+## Low-level checks in an isolated source-only copy
 
-## Azure Firewall (if enabled)
+If diagnosing the runner, use a directory containing only reviewed tracked source/templates/tests/lockfiles, with no live tfvars, state, backend credentials, environment credentials or production backend configuration. In that isolated copy:
 
-```bash
-az network firewall show -g rg-<prefix> -n fw-vhub-<prefix> -o table
-az network firewall policy show -g rg-<prefix> -n fwpol-<prefix> -o table
+```powershell
+terraform fmt -check -recursive
+terraform init -backend=false -input=false -lockfile=readonly
+terraform validate
+# Run only the supplied tests that use mock providers:
+terraform test
 ```
 
-Expected:
+Provider downloads can require Internet access. Provider initialization and mock acceptance are distinct from Azure API calls. Do not run arbitrary test files without reviewing whether they use mocked providers.
 
-- Firewall and policy are in Succeeded state.
+## Evidence contract for future operators
 
-## VM connectivity (spoke-to-spoke)
+For each later live check record:
 
-Use Network Watcher or RunCommand to test from a VM.
+| Field | Required content |
+|---|---|
+| Scope | Root/profile, commit, redacted lab identifier |
+| Time | UTC timestamp and relevant log window |
+| Client | Source network/host and resolver |
+| Identity | Intended authorized principal, redacted |
+| Request | Destination name, resolved IP, protocol/port and expected result |
+| Path | Selected forward and return route |
+| Observation | Actual result, log/action or explicit NOT RUN |
+| Boundary | What the observation does not prove |
 
-```bash
-# Example: test from vm-spoke1-1 to vm-spoke2-1 on RDP
-az network watcher test-connectivity \
-  --source-resource $(terraform output -raw vnet_spoke1_id) \
-  --dest-address 10.2.1.4 --dest-port 3389 -o json
-```
+A successful deployment is configuration evidence. A DNS answer is name-resolution evidence. A real authorized request plus return path and correlated controls is stronger traffic evidence. Preserve those distinctions.
 
-Expected:
-
-- Connectivity result should be Reachable for enabled VMs.
-
-## Route Server + BGP (if enabled)
-
-```bash
-az network routeserver show -g rg-<prefix> -n rs-<prefix> -o table
-az network routeserver peering list -g rg-<prefix> --routeserver rs-<prefix> -o table
-
-az vm run-command invoke -g rg-<prefix> -n vm-spoke1-nva \
-  --command-id RunPowerShellScript \
-  --scripts "Get-BgpPeer | Format-Table Name,PeerIPAddress,PeerASN,State,SessionState"
-```
-
-Expected:
-
-- Route Server is Succeeded.
-- Peers exist and are Connected.
-
-## VPN (if enabled)
-
-```bash
-az network vhub gateway show -g rg-<prefix> -n vpngw-vhub-<prefix> -o table
-az network vnet-gateway show -g rg-<prefix> -n vpngw-onprem-<prefix> -o table
-az network vpn-connection show -g rg-<prefix> -n conn-onprem-to-vhub-<prefix> -o table
-```
-
-Expected:
-
-- Gateways are Succeeded.
-- VPN connection status is Connected.
-
-## DNS and Private Endpoint (if enabled)
-
-```bash
-az network private-dns zone list -g rg-<prefix> -o table
-az network private-endpoint list -g rg-<prefix> -o table
-
-# DNS resolution test from a VM
-az vm run-command invoke -g rg-<prefix> -n vm-spoke1-1 \
-  --command-id RunPowerShellScript \
-  --scripts "Resolve-DnsName <storage-account>.blob.core.windows.net"
-```
-
-Expected:
-
-- Private DNS zones exist and are linked to VNets.
-- Storage DNS resolves to a private IP in Spoke1.
-
-## Edge services (optional)
-
-Install IIS on Spoke1 VMs and validate the ILB:
-
-```bash
-az vm run-command invoke -g rg-<prefix> -n vm-spoke1-1 \
-  --command-id RunPowerShellScript \
-  --scripts "Install-WindowsFeature Web-Server"
-
-# Test ILB HTTP
-# Test-NetConnection -ComputerName <lb_frontend_ip> -Port 80
-```
-
-Expected:
-
-- ILB responds on port 80 if IIS is installed.
-- App Gateway responds only after backend pool targets are configured.
-
-## Cleanup
-
-```bash
-terraform destroy -auto-approve
-```
-
-## Next
-
-- Component checks: `component-checks.md`
-- Route validation: `route-validation.md`
-- DNS validation: `dns-validation.md`
-- Test matrix: `test-matrix.md`
-- Troubleshooting: `troubleshooting.md`
-
-## Related pages
-
-- [Outputs reference](../reference/outputs.md)
-- [Lab scenarios](../scenarios/README.md)
+Use [component checks](component-checks.md), [routes](route-validation.md), [DNS](dns-validation.md), [the matrix](test-matrix.md) and [troubleshooting](troubleshooting.md). All commands there are future references, not results of this update.

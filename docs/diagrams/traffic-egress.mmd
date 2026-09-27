@@ -1,0 +1,28 @@
+flowchart LR
+accTitle: Separate forward, return, and outbound traffic cases
+accDescr: Three separate cases show vWAN Firewall egress, workload-subnet NAT egress, and private endpoint access. Every case shows a return path. NAT is not an override for a route to a virtual appliance.
+subgraph A["Case A — secured hub profile"]
+direction LR
+A1["Spoke source"] -->|"Selected hub route"| A2["Hub + Firewall"]
+A2 -->|"Policy + SNAT"| A3["Internet destination"]
+A3 -.->|"Response to translated source"| A2
+A2 -.->|"Reverse flow"| A1
+end
+subgraph B["Case B — subnet NAT egress"]
+direction LR
+B1["Workload source"] -->|"Internet next hop"| B2["Associated NAT Gateway"]
+B2 -->|"SNAT"| B3["Internet destination"]
+B3 -.->|"Response"| B2
+B2 -.->|"Reverse translation"| B1
+end
+subgraph C["Case C — private service"]
+direction LR
+C1["Authorized private client"] -->|"DNS yields endpoint IP"| C2["Route to private endpoint"]
+C2 -->|"Approved service connection"| C3["Blob data plane"]
+C3 -.->|"Authorized response"| C2
+C2 -.->|"Return route"| C1
+end
+N["Each row is independent<br/>UDR to appliance changes the egress path<br/>DNS + route + policy + authorization all matter<br/>Live packet evidence: NOT RUN"]:::note
+A3 ~~~ N
+classDef default fill:#e8f1fa,stroke:#265f8b,color:#10283b;
+classDef note fill:#fff3dc,stroke:#99751c,color:#45340c;

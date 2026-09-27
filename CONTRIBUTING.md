@@ -1,39 +1,30 @@
 # Contributing
 
-Thanks for helping improve Azure Network Lab. This project is intentionally practical: changes should make the lab easier to deploy, easier to reason about, or safer to operate.
+Changes should improve configuration correctness, teaching clarity or operational boundaries. This repository update follows a **local-only validation rule**: never deploy or execute Azure labs as a validation shortcut.
 
-## Local Workflow
+## Local work
 
-1. Create a branch from the latest default branch.
-2. Make the smallest change that solves the problem.
-3. Run the validation commands before opening a pull request.
-4. Update docs when behavior, defaults, costs, or test steps change.
+Use Terraform 1.16.4 and the pinned AzureRM 4.57.0 lockfiles. PowerShell 7+ is required for local tooling; 7.4+ is recommended. Read the chosen profile/example and do not inspect or copy another operator's private tfvars/state.
 
-```bash
-terraform fmt -recursive
-terraform init -backend=false
-terraform validate
+```powershell
+pwsh ./scripts/Test-Offline.ps1
+pwsh ./scripts/Update-TerraformReference.ps1
 ```
 
-## Pull Request Checklist
+The test runner works with source-only copies and supplied mock definitions. Missing tools must be reported as SKIP or failure according to the runner, never silently claimed as a pass. Reference generation updates Markdown; review the result. Exact local results belong in [validation status](docs/validation-status.md).
 
-- Terraform is formatted and validates locally.
-- Feature toggles still support a low-cost deployment path.
-- New resources include tags through the shared `ctx` object.
-- Sensitive values stay in local `.tfvars` files, environment variables, or a secret store.
-- README or wiki pages are updated when the user workflow changes.
-- Cost, security, and cleanup implications are clear.
+Do not run cloud-aware Terraform plans, resource queries, imports, applies, destroys, guest commands or traffic tests for a contribution unless the owner explicitly changes the no-execution scope.
 
-## Terraform Patterns
+## Configuration changes
 
-- Keep root orchestration in `main.tf` and derived maps in `locals.tf`.
-- Prefer feature flags in the `deploy` object over commenting resources in and out.
-- Reuse existing modules and naming conventions before adding new abstractions.
-- Use variable validations or preconditions for guardrails that prevent expensive or unsafe mistakes.
+Keep root orchestration, derived maps and module interfaces clear. Preserve existing addresses through moved blocks where appropriate. Validate unsupported flag combinations and retain a minimal default. Independent examples need their own resource ownership, opt-in costs, exact input/output contract, mock tests and cleanup instructions.
 
-## Documentation Standards
+## Documentation changes
 
-- Use concrete commands that can be copied into a terminal.
-- Call out required Azure permissions, cost-bearing resources, and cleanup steps.
-- Keep architecture pages descriptive and scenario pages action-oriented.
-- Avoid committing generated state, plans, logs, or machine-specific files.
+Use the [five-domain course](wiki/book.md) and [objective map](wiki/reference/az-700-alignment.md). Describe only the implemented slice of a service; label external-client/provider dependencies. Do not copy Microsoft objective prose wholesale or imply every current topic was newly added in July 2026.
+
+Update `.mmd` and matching `.svg` files together. Every diagram needs a meaningful `accTitle`, `accDescr`, readable labels and a caption explaining the boundary. Render locally with Mermaid CLI 12, review images, and keep SVGs free of embedded font bloat. Do not present an idealized topology as the actual default.
+
+## Review
+
+Use [the review checklist](docs/operations/review-checklist.md). Provide the problem, final behavior, affected profiles, local checks and remaining NOT RUN items. Keep secrets, state, plans and live resource identifiers out of examples. No publishing or commit is part of a validation command.

@@ -1,0 +1,27 @@
+flowchart TB
+accTitle: Three independent private DNS and application paths
+accDescr: Case A resolves the normal Blob hostname from a linked Azure VNet and then connects separately to the private endpoint. Case B forwards external Blob queries to the Azure inbound resolver. Case C forwards a branch namespace from Azure to a different external DNS target. The cases do not form a forwarding loop.
+subgraph A["A — Azure client resolves Blob, then opens a separate HTTPS connection"]
+direction LR
+A1["Azure client<br/>Linked VNet"] -->|"DNS query"| A2["Azure DNS<br/>account.blob.core.windows.net"]
+A2 -->|"CNAME then A lookup"| A3["Linked private zone<br/>privatelink.blob.core.windows.net"]
+A3 -.->|"Endpoint private IP"| A1
+A1 ==>|"HTTPS application path"| A4["Blob private endpoint<br/>Approval + data RBAC"]
+end
+subgraph B["B — External client resolves an Azure private namespace"]
+direction LR
+B1["External client"] --> B2["External DNS<br/>Conditional forwarder for Blob"]
+B2 -->|"Private route + DNS 53"| B3["Resolver inbound<br/>Dedicated delegated subnet"]
+B3 --> B4["Azure DNS<br/>Linked Blob private zone"]
+end
+subgraph C["C — Azure client resolves a branch-owned namespace"]
+direction LR
+C1["Azure client<br/>host.branch.example"] --> C2["Linked forwarding ruleset<br/>branch.example."]
+C2 --> C3["Resolver outbound<br/>Separate delegated subnet"]
+C3 -->|"Explicit reachable target"| C4["Branch DNS server<br/>Authoritative for branch.example"]
+end
+A ~~~ B ~~~ C
+N["Each case is separate • no forwarding loop is implied<br/>External DNS and private routes are prerequisites<br/>Live DNS and data access: NOT RUN"]:::note
+C ~~~ N
+classDef default fill:#e8f1fa,stroke:#265f8b,color:#10283b;
+classDef note fill:#fff3dc,stroke:#99751c,color:#45340c;

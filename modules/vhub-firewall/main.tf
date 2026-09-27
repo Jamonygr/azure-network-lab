@@ -4,7 +4,7 @@ resource "azurerm_firewall_policy" "this" {
   location            = var.ctx.location
   sku                 = "Standard"
 
-  threat_intelligence_mode = "Alert"
+  threat_intelligence_mode = "Deny"
 
   dns {
     proxy_enabled = true
@@ -19,50 +19,78 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
   priority           = 100
 
   network_rule_collection {
-    name     = "AllowNetworkRules"
+    name     = "AllowLabNetworks"
     priority = 100
     action   = "Allow"
-
     rule {
-      name                  = "AllowAllOutbound"
-      protocols             = ["TCP", "UDP", "ICMP"]
-      source_addresses      = ["10.0.0.0/8", "192.168.0.0/16"]
-      destination_addresses = ["*"]
-      destination_ports     = ["*"]
+      name                  = "LabWebAndRdp"
+      protocols             = ["TCP"]
+      source_addresses      = var.source_cidrs
+      destination_addresses = var.source_cidrs
+      destination_ports     = ["80", "443", "3389"]
     }
-
     rule {
-      name                  = "AllowICMP"
+      name              = "WindowsActivation"
+      protocols         = ["TCP"]
+      source_addresses  = var.source_cidrs
+      destination_fqdns = ["azkms.core.windows.net", "kms.core.windows.net"]
+      destination_ports = ["1688"]
+    }
+    rule {
+      name                  = "LabDns"
+      protocols             = ["TCP", "UDP"]
+      source_addresses      = var.source_cidrs
+      destination_addresses = var.source_cidrs
+      destination_ports     = ["53"]
+    }
+    rule {
+      name                  = "LabIcmp"
       protocols             = ["ICMP"]
-      source_addresses      = ["*"]
-      destination_addresses = ["*"]
+      source_addresses      = var.source_cidrs
+      destination_addresses = var.source_cidrs
       destination_ports     = ["*"]
     }
   }
-
+  dynamic "network_rule_collection" {
+    for_each = var.enable_monitoring_egress ? [1] : []
+    content {
+      name     = "AzureMonitorAgent"
+      priority = 150
+      action   = "Allow"
+      rule {
+        name                  = "MonitorHttps"
+        protocols             = ["TCP"]
+        source_addresses      = var.source_cidrs
+        destination_addresses = ["AzureMonitor"]
+        destination_ports     = ["443"]
+      }
+    }
+  }
   application_rule_collection {
-    name     = "AllowWebTraffic"
+    name     = "ApprovedHttps"
     priority = 200
     action   = "Allow"
-
     rule {
-      name = "AllowHTTPS"
+      name = "LearningDestinations"
       protocols {
         type = "Https"
         port = 443
       }
-      source_addresses  = ["10.0.0.0/8", "192.168.0.0/16"]
-      destination_fqdns = ["*"]
+      source_addresses  = var.source_cidrs
+      destination_fqdns = var.allowed_fqdns
     }
-
     rule {
-      name = "AllowHTTP"
+      name = "WindowsUpdate"
       protocols {
         type = "Http"
         port = 80
       }
-      source_addresses  = ["10.0.0.0/8", "192.168.0.0/16"]
-      destination_fqdns = ["*"]
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses      = var.source_cidrs
+      destination_fqdn_tags = ["WindowsUpdate"]
     }
   }
 }

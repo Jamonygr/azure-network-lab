@@ -1,63 +1,11 @@
-# Current config (lab profile)
+# Public baseline, not local environment inventory
 
-<p align="center">
-  <img src="../images/reference-current-config.svg" alt="Current config (lab profile) banner" width="1000" />
-</p>
+This page describes the committed starter. It does **not** mirror private tfvars, Terraform state or an Azure subscription.
 
+The template uses project `az700lab`, region `westeurope`, placeholder subscription GUID and required tags. Root default/minimal selects bidirectional spoke peering and no optional paid services. The default address allocation is [documented separately](../architecture/network-topology.md).
 
-This page mirrors the current values in `terraform.tfvars` but redacts secrets. Update this page whenever the lab profile changes.
+Toolchain: Terraform 1.16.4, AzureRM 4.57.0. The provider lockfiles and [generated reference](../../reference/root.md) record configuration requirements.
 
-## ctx
+Choose one [profile](feature-matrix.md) consciously. Existing explicit deploy objects retain legacy Log Analytics behavior unless they set that flag false. Existing-state upgrades need their own saved plan review; this update neither inspected private state nor applied a migration.
 
-- project: `az700-lab`
-- location: `eastus2`
-- tags:
-  - Owner: `Your Name`
-  - CostCenter: `Training`
-  - Environment: `lab`
-  - Project: `az700`
-
-## deploy
-
-- vwan: true
-- vhub_firewall: true
-- vpn: false
-- route_server: true
-- dns_resolver: true
-- private_dns_zones: true
-- application_gateway: false
-- load_balancer: true
-- nat_gateway: true
-- bastion: false
-- private_endpoint: true
-- spoke1_vms: true
-- spoke2_vms: true
-- onprem_vms: false
-- nvas: true
-
-## network
-
-- vhub_address_prefix: 10.10.0.0/23
-- spoke1_address_space: 10.1.0.0/16
-- spoke2_address_space: 10.2.0.0/16
-- onprem_address_space: 192.168.0.0/16
-
-## compute
-
-- vm_size: Standard_B1ms
-- admin_username: azureadmin
-
-## vpn
-
-- vpn_shared_key: set in `terraform.tfvars` (required if VPN is enabled)
-
-## security note
-
-Do not copy passwords or shared keys into this page. Keep secrets in `terraform.tfvars` or a secure secret store.
-
-## Related pages
-
-- [Variables reference](variables.md)
-- [Scenario: Full lab build](../scenarios/full-lab.md)
-- [Lab testing guide](../testing/lab-testing-guide.md)
-- [Feature matrix](feature-matrix.md)
+Live deployment and traffic are NOT RUN. Exact local results belong to [validation status](../../docs/validation-status.md), not this baseline page.

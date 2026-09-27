@@ -1,95 +1,19 @@
-# Outputs reference
+# Outputs and evidence
 
-<p align="center">
-  <img src="../images/reference-outputs.svg" alt="Outputs reference banner" width="1000" />
-</p>
+[outputs.tf](../../outputs.tf) defines output names. Outputs report Terraform state, not independently observed reachability. Many optional-service outputs are null when disabled.
 
+| Output group | Names |
+|---|---|
+| Ownership | `resource_group_name`, `resource_group_location` |
+| Root shape | `enabled_services`, `connected_hub_vnets`, `subnet_address_plan`, `subnet_default_outbound_access` |
+| Transit | `vwan_id`, `vhub_id`, `firewall_private_ip`, `firewall_public_ips` |
+| VNets | `vnet_spoke1_id`, `vnet_spoke2_id`, `vnet_onprem_id` |
+| Hybrid | `onprem_vpn_gateway_public_ip` |
+| BGP | `route_server_id`, `route_server_virtual_router_asn`, `route_server_virtual_router_ips` |
+| DNS/private access | `dns_resolver_inbound_ip`, `dns_forwarding_ruleset_id`, `storage_account_name`, `private_endpoint_storage_ip` |
+| Delivery/admin | `load_balancer_frontend_ip`, `application_gateway_public_ip`, `bastion_dns_name` |
+| Observation | `log_analytics_workspace_id`, `monitoring_resource_ids` |
 
-Outputs are defined in `outputs.tf`. Many outputs are conditional and will be `null` when the related service is disabled.
+VM address outputs and `connection_info` help a future operator select a client; they do not prove guest setup or BGP. Avoid publishing raw output JSON containing live resource identifiers. Collect only the field needed, then redact identifiers in shared evidence.
 
-## Core outputs
-
-| Output | Description |
-|--------|-------------|
-| `resource_group_name` | Resource group name. |
-| `resource_group_location` | Resource group location. |
-| `vwan_id` | Virtual WAN ID (if enabled). |
-| `vhub_id` | Virtual Hub ID (if enabled). |
-
-## Security and hub
-
-| Output | Description |
-|--------|-------------|
-| `firewall_private_ip` | Firewall private IP (if enabled). |
-| `firewall_public_ips` | Firewall public IPs (if enabled). |
-
-## VNets and VMs
-
-| Output | Description |
-|--------|-------------|
-| `vnet_spoke1_id` | Spoke1 VNet ID. |
-| `vnet_spoke2_id` | Spoke2 VNet ID. |
-| `vnet_onprem_id` | OnPrem VNet ID. |
-| `vm_spoke1_1_private_ip` | Spoke1 VM 1 private IP (if enabled). |
-| `vm_spoke1_2_private_ip` | Spoke1 VM 2 private IP (if enabled). |
-| `vm_spoke2_1_private_ip` | Spoke2 VM private IP (if enabled). |
-| `vm_onprem_1_private_ip` | OnPrem VM private IP (if enabled). |
-| `vm_spoke1_nva_private_ip` | Spoke1 NVA private IP (if enabled). |
-| `vm_onprem_nva_private_ip` | OnPrem NVA private IP (if enabled). |
-
-## VPN and routing
-
-| Output | Description |
-|--------|-------------|
-| `onprem_vpn_gateway_public_ip` | OnPrem VPN gateway public IP (if enabled). |
-| `route_server_id` | Route Server ID (if enabled). |
-| `route_server_virtual_router_asn` | Route Server ASN (if enabled). |
-| `route_server_virtual_router_ips` | Route Server BGP IPs (if enabled). |
-
-## DNS and private endpoints
-
-| Output | Description |
-|--------|-------------|
-| `dns_resolver_inbound_ip` | DNS resolver inbound IP (if enabled). |
-| `storage_account_name` | Storage account name (if enabled). |
-| `private_endpoint_storage_ip` | Storage private endpoint IP (if enabled). |
-
-## Edge services
-
-| Output | Description |
-|--------|-------------|
-| `load_balancer_frontend_ip` | Internal LB frontend IP (if enabled). |
-| `application_gateway_public_ip` | App Gateway public IP (if enabled). |
-| `bastion_dns_name` | Bastion DNS name (if enabled). |
-
-## connection_info
-
-`connection_info` is a summary map of the most useful addresses and access hints.
-
-Example shape:
-
-```hcl
-connection_info = {
-  bastion_connect = "Connect via Azure Portal -> Bastion -> bas-<prefix>"
-  vm_admin_user   = "azureadmin"
-  spoke1_vms      = ["10.1.1.4", "10.1.1.5"]
-  spoke1_nva      = "10.1.8.10"
-  spoke2_vms      = ["10.2.1.4"]
-  onprem_vms      = ["192.168.1.4", "192.168.2.10"]
-  route_server    = { asn = 65515, peer_ips = ["10.1.7.4", "10.1.7.5"] }
-}
-```
-
-## Usage
-
-```bash
-terraform output
-terraform output -json
-```
-
-## Related pages
-
-- [Lab testing guide](../testing/lab-testing-guide.md)
-- [Configuration flow](../architecture/configuration-flow.md)
-- [Variables reference](variables.md)
-- [CLI cheat sheet](cli-cheatsheet.md)
+The independent examples expose their own outputs; read their own `outputs.tf` and README. Do not use root output names in another Terraform directory.

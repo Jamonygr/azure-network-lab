@@ -60,3 +60,9 @@ variable "lb_backend_pool_id" {
     error_message = "lb_backend_pool_id must be set when join_lb_backend_pool is true."
   }
 }
+
+variable "install_web_server" {
+  description = "Install IIS and a health endpoint using the checked-in, secret-free bootstrap script."
+  type        = bool
+  default     = false
+}

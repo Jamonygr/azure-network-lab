@@ -1,88 +1,25 @@
-# Component checks
+# Future component checks
 
-<p align="center">
-  <img src="../images/testing-component-checks.svg" alt="Component checks banner" width="1000" />
-</p>
+These are future operator references. **No Azure component was queried or exercised.**
 
+| Component | Inspect before testing | Request/evidence |
+|---|---|---|
+| Hub | Connection association, propagation and intent | Effective routes in both directions |
+| Firewall | Rules, source scope, diagnostics | Allowed/denied request with matching rule log |
+| VPN | Negotiated policy, peer and routes | Tunnel/BGP records plus host response |
+| NVA | Extension, forwarding and both BGP peers | Guest command results and route records |
+| DNS | Client resolver, zone/ruleset links | Normal hostname CNAME/A chain |
+| Endpoint | Target/subresource, approval, public setting | Authorized service request |
+| App Gateway | Listener, hostname, backend and probe | Backend health plus response |
+| LB | Pool, rule, probe and NSG | Real service response from private client |
+| Monitoring | Existing watcher, targets, retention, agent | New records with the expected source/time |
 
-This page provides focused checks for each major component. Use it when a single feature is not behaving as expected.
+Example future App Gateway inspection:
 
-## Resource group inventory
-
-```bash
-az resource list -g rg-<prefix> -o table
+```powershell
+az network application-gateway show-backend-health --resource-group '<lab-rg>' --name '<gateway-name>' --output json
 ```
 
-Expected:
+Backend health is one signal. Also test the intended public hostname/client TLS path and correlate WAF logs where applicable. Keep public identifiers and raw logs out of shared documentation.
 
-- vWAN, vHub, VNets, and enabled optional services appear.
-
-## VNets and subnets
-
-```bash
-az network vnet list -g rg-<prefix> -o table
-az network vnet subnet list -g rg-<prefix> --vnet-name vnet-spoke1-<prefix> -o table
-```
-
-## VNet peering
-
-```bash
-az network vnet peering list -g rg-<prefix> --vnet-name vnet-spoke1-<prefix> -o table
-```
-
-Expected:
-
-- Spoke1 <-> Spoke2 peering exists when Route Server is enabled.
-
-## NSG rules
-
-```bash
-az network nsg rule list -g rg-<prefix> --nsg-name nsg-spoke1-<prefix> -o table
-```
-
-Expected:
-
-- RDP, HTTP, HTTPS, and ICMP rules are present.
-
-## Load balancer
-
-```bash
-az network lb show -g rg-<prefix> -n ilb-<prefix> -o table
-```
-
-## NAT gateway
-
-```bash
-az network nat gateway show -g rg-<prefix> -n nat-<prefix> -o table
-```
-
-## Application Gateway
-
-```bash
-az network application-gateway show -g rg-<prefix> -n appgw-<prefix> -o table
-```
-
-## Bastion
-
-```bash
-az network bastion show -g rg-<prefix> -n bas-<prefix> -o table
-```
-
-## Storage + private endpoint
-
-```bash
-az storage account list -g rg-<prefix> -o table
-az network private-endpoint list -g rg-<prefix> -o table
-```
-
-## Next
-
-- Route validation: `route-validation.md`
-- DNS validation: `dns-validation.md`
-
-## Related pages
-
-- [Lab testing guide](lab-testing-guide.md)
-- [Troubleshooting](troubleshooting.md)
-- [Scenario: Virtual WAN basics](../scenarios/vwan-basics.md)
-- [CLI cheat sheet](../reference/cli-cheatsheet.md)
+Traffic Manager needs special care: a default `trafficmanager.net` name is not proof of a valid application certificate. Follow the example's DNS-selection test and request the selected App Service hostname, or design an owned custom domain and matching certificates for every backend.

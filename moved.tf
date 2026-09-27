@@ -96,3 +96,9 @@ moved {
   from = module.vm_spoke1_nva[0]
   to   = module.vm_nva["spoke1"]
 }
+
+# Preserve the previously unconditional workspace when legacy settings retain it.
+moved {
+  from = module.log_analytics
+  to   = module.log_analytics[0]
+}

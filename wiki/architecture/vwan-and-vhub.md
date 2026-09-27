@@ -1,59 +1,13 @@
-# vWAN and vHub
+# Virtual WAN and the secured hub
 
-<p align="center">
-  <img src="../images/architecture-vwan-and-vhub.svg" alt="vWAN and vHub banner" width="1000" />
-</p>
+![vWAN configuration](../../docs/diagrams/vwan.svg)
 
+*The hub router connects VNets. When enabled, Firewall and routing intent describe inspection for Internet and private destinations. The VPN branch is optional.*
 
-This page focuses on the vWAN fabric and vHub services created by the lab. These resources form the core transit layer for hub-and-spoke routing.
+The root's `deploy.vwan` enables vWAN, vHub and eligible VNet connections. `deploy.vhub_firewall` requires vWAN. `deploy.vpn` adds the hub VPN gateway and an Azure gateway in the simulated branch. Read the selected profile rather than combining every flag.
 
-## Virtual WAN (vWAN)
+Inspect `modules/vhub-connection` for connection settings and `modules/vhub-firewall` for routing intent. The latter references the Firewall as a next hop for private and Internet categories. A permissive policy and a missing route are different defects: one changes what traffic is allowed, the other changes whether it reaches inspection.
 
-The vWAN is created by `modules/vwan` with the following key settings:
+For a future verification, obtain the connection's effective routes and correlate a source/destination test with Firewall logs. Do not use the presence of a policy resource as evidence of enforcement. Also review reverse routes for branch and spoke traffic.
 
-- `type = "Standard"`
-- `allow_branch_to_branch_traffic = true`
-- `disable_vpn_encryption = false`
-- `office365_local_breakout_category = "None"`
-
-These defaults are optimized for training and lab flexibility.
-
-## Virtual Hub (vHub)
-
-The vHub is created by `modules/vhub`:
-
-- Standard SKU.
-- Address prefix comes from `var.vhub_address_prefix` (default /23).
-- Tied directly to the vWAN ID.
-
-## vHub connections
-
-Spoke VNets connect to the hub using `modules/vhub-connection`:
-
-- Connections are created from `locals.vhub_connections_enabled`.
-- `internet_security_enabled` is set from locals and follows `deploy.vhub_firewall`.
-- Spoke1 connection is disabled when Route Server is enabled.
-
-## vHub VPN gateway
-
-If `deploy.vpn = true`, the lab creates a vHub VPN gateway:
-
-- Scale unit defaults to 1.
-- BGP ASN is 65515.
-- Used by the vWAN VPN site connection.
-
-## Outputs to watch
-
-- `vwan_id`
-- `vhub_id`
-- `route_server_virtual_router_ips` (if Route Server enabled)
-
-## Related pages
-
-- Routing behaviors: `architecture/routing-and-bgp.md`
-- VPN details: `architecture/vpn-and-hybrid.md`
-- Connectivity tests: `testing/lab-testing-guide.md`
-- [Network topology](network-topology.md)
-- [Firewall and routing intent](firewall-and-routing-intent.md)
-- [Scenario: Virtual WAN basics](../scenarios/vwan-basics.md)
-
+When Route Server is enabled in Spoke1, the root removes that VNet's hub connection. The [Route Server design](route-server-and-nva.md) is a separate learning path. See [secured hub exercise](../scenarios/secured-hub-firewall.md).

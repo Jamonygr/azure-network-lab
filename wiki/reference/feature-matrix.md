@@ -1,38 +1,19 @@
-# Feature matrix
+# Root profiles and ownership
 
-<p align="center">
-  <img src="../images/reference-feature-matrix.svg" alt="Feature matrix banner" width="1000" />
-</p>
+All files below are committed nonsecret `.tfvars.example` overlays. Terraform accepts them with an explicit `-var-file`. They do not isolate state.
 
+| Profile | Enabled optional flags |
+|---|---|
+| [minimal](../../profiles/minimal.tfvars.example) | spoke_peering; no optional paid services |
+| [vwan-secured](../../profiles/vwan-secured.tfvars.example) | vwan, vhub_firewall, log_analytics |
+| [hybrid-vpn](../../profiles/hybrid-vpn.tfvars.example) | vwan, vpn, log_analytics |
+| [route-server](../../profiles/route-server.tfvars.example) | route_server, nvas, nat_gateway |
+| [private-dns](../../profiles/private-dns.tfvars.example) | dns_resolver, private_dns_zones, private_endpoint |
+| [application-delivery](../../profiles/application-delivery.tfvars.example) | application_gateway, load_balancer, nat_gateway, spoke1_vms |
+| [legacy-combined](../../profiles/legacy-combined.tfvars.example) | Earlier broad footprint, Bastion off, Log Analytics on |
 
-This table maps `deploy` flags to the modules and resources they enable.
+Monitoring is off in all shipped profiles. Log Analytics alone does not mean diagnostics or flow logs are configured. See [monitoring opt-in](variables.md#monitoring-settings).
 
-| Deploy flag | Modules | Key resources | Notes |
-|-------------|---------|---------------|-------|
-| `deploy.vwan` | `vwan`, `vhub`, `vhub-connection` | Virtual WAN, vHub, vHub connections | Base fabric for hub-and-spoke. |
-| `deploy.vhub_firewall` | `vhub-firewall` | Azure Firewall, firewall policy, routing intent | Requires `deploy.vwan = true`. |
-| `deploy.vpn` | `vhub-vpn-gateway`, `vpn-gateway`, `vpn-site`, `local-network-gateway`, `vpn-connection` | vHub VPN GW, on-prem VPN GW, VPN site/connection | Requires `deploy.vwan = true`. |
-| `deploy.route_server` | `route-server`, `vnet-peering` | Route Server, vnet peering | Disables Spoke1 vHub connection; BGP peers require `deploy.nvas = true`. |
-| `deploy.dns_resolver` | `dns-private-resolver` | DNS Private Resolver | Requires delegated subnets in Spoke1. |
-| `deploy.private_dns_zones` | `private-dns-zone` | Private DNS zones and VNet links | Required for automatic private endpoint DNS integration. |
-| `deploy.private_endpoint` | `storage-account`, `private-endpoint` | Storage account + private endpoint | Best paired with DNS zones. |
-| `deploy.load_balancer` | `load-balancer` | Internal load balancer | Spoke1 workload subnet. |
-| `deploy.application_gateway` | `application-gateway` | WAF v2 App Gateway | Spoke1 AppGw subnet. |
-| `deploy.nat_gateway` | `nat-gateway` | NAT gateway + public IP | Spoke1 workload subnet. |
-| `deploy.bastion` | `bastion` | Azure Bastion host | Requires AzureBastionSubnet. |
-| `deploy.spoke1_vms` | `vm-windows` | Spoke1 workload VMs | Two VMs by default. |
-| `deploy.spoke2_vms` | `vm-windows` | Spoke2 workload VM | One VM by default. |
-| `deploy.onprem_vms` | `vm-windows` | OnPrem workload VM | One VM by default. |
-| `deploy.nvas` | `vm-windows-nva` | RRAS NVAs | OnPrem and Spoke1 NVAs. |
+The root always owns three VNets, reserved subnets and NSGs. Direct spoke peering occurs in minimal and Route Server modes. That mode removes Spoke1's hub connection. Optional paid services are absent from minimal.
 
-## Notes
-
-- vHub connections are controlled by `locals.vhub_connections_enabled` to handle the Route Server constraint.
-- NSGs, VNets, and resource group are always created regardless of toggles.
-
-## Related pages
-
-- [Lab scenarios](../scenarios/README.md)
-- [Defaults and SKUs](defaults-and-skus.md)
-- [Cost model](cost-model.md)
-- [Variables reference](variables.md)
+Each independent example is another root. None is implicitly connected to these VNets. [Examples](../scenarios/independent-examples.md)

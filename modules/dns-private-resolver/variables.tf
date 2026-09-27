@@ -36,3 +36,14 @@ variable "ctx" {
     tags     = map(string)
   })
 }
+
+variable "forwarding_rules" {
+  description = "Conditional DNS forwarding rules for actual reachable DNS servers."
+  type        = map(object({ domain_name = string, enabled = optional(bool, true), target_dns_servers = list(object({ ip_address = string, port = optional(number, 53) })) }))
+  default     = {}
+}
+variable "forwarding_vnet_links" {
+  description = "Named VNet IDs linked to the forwarding ruleset."
+  type        = map(string)
+  default     = {}
+}

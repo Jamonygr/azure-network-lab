@@ -1,32 +1,18 @@
-# Review Checklist
+# Contributor review checklist
 
-This checklist is for maintainers reviewing architecture, Terraform, or documentation changes.
+Review a concrete configuration and its teaching claims together.
 
-## Architecture
+1. Confirm the default remains a small network-only shape and every paid service is explicit.
+2. Compare profile flags, dependency validations, module calls and outputs; do not rely on prose alone.
+3. Check CIDR derivation, nonoverlap, special subnet names/delegation and administration sources.
+4. Draw forward and return paths. Keep Route Server control traffic separate from application packets.
+5. Verify private DNS, forwarding target, endpoint approval and service identity as separate layers.
+6. Inspect Firewall/WAF scopes and egress dependencies without broad troubleshooting exceptions.
+7. Review state/moved-block compatibility and exact cleanup ownership, including shared-service children.
+8. Map new material to the dated objective matrix using Terraform-backed, reference configuration or design exercise.
+9. Keep synthetic observations labelled and all unperformed Azure tests NOT RUN.
+10. Update Mermaid source and matching SVG together; inspect readability and accessible title/description.
+11. Run local checks and review generated references through [contributor instructions](../../CONTRIBUTING.md).
+12. Confirm no credentials, local tfvars, state, saved plans, raw logs or unrequested automation definitions are tracked.
 
-- The topology remains explainable from the README and wiki overview.
-- Optional services are controlled by feature flags rather than manual code edits.
-- Azure platform constraints are documented near the related scenario.
-- Address spaces, ASNs, and route intent stay consistent across code and docs.
-
-## Terraform
-
-- Root files orchestrate modules; modules own resource implementation details.
-- Resource names follow the shared prefix and naming convention.
-- Tags flow through `module.tags` and the shared `ctx` object.
-- Conditional resources avoid invalid references when their feature flag is disabled.
-- Variable validations catch common misconfiguration before provider calls.
-
-## Security
-
-- No local state, plan, log, or variable files are tracked.
-- Public network access is disabled by default for private endpoint examples.
-- Administrative access is scoped to lab networks or Bastion-based workflows.
-- Any new secrets are marked `sensitive` and documented outside committed examples.
-
-## Documentation
-
-- README remains a quick path to deploy, validate, and clean up.
-- Wiki pages are updated when resource behavior changes.
-- Cost-bearing features are called out where they are enabled.
-- Commands use placeholders instead of environment-specific values.
+No step requires a cloud deployment. [Validation status](../validation-status.md) records actual checks.

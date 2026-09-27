@@ -1,0 +1,35 @@
+flowchart TB
+accTitle: Default Azure Network Lab address allocation
+accDescr: Separate boxes show the managed virtual hub, Spoke1 service subnets, Spoke2 workload subnet, and Azure-hosted branch subnets. Reserved subnets do not imply their paid services are enabled.
+H["Managed vHub<br/>10.10.0.0/23<br/>Optional service"]:::hub
+subgraph S1["Spoke1 — 10.1.0.0/16"]
+direction LR
+W["Workload<br/>10.1.1.0/24"]
+A["AppGwSubnet<br/>10.1.2.0/24"]
+B["AzureBastionSubnet<br/>10.1.3.0/26"]
+P["PrivateEndpointSubnet<br/>10.1.4.0/24"]
+I["DNS inbound<br/>10.1.5.0/28<br/>Resolver delegation"]
+O["DNS outbound<br/>10.1.5.16/28<br/>Resolver delegation"]
+L["LB frontend<br/>10.1.6.0/24"]
+R["RouteServerSubnet<br/>10.1.7.0/27"]
+N["NvaSubnet<br/>10.1.8.0/24"]
+W ~~~ A ~~~ B
+P ~~~ I ~~~ O
+L ~~~ R ~~~ N
+end
+subgraph S2["Spoke2 — 10.2.0.0/16"]
+W2["Workload<br/>10.2.1.0/24"]
+end
+subgraph OP["Azure-hosted branch — 192.168.0.0/16"]
+G["GatewaySubnet<br/>192.168.0.0/27"]
+C["Default<br/>192.168.1.0/24"]
+V["NvaSubnet<br/>192.168.2.0/24"]
+G ~~~ C ~~~ V
+end
+H ~~~ S1
+S1 ~~~ S2 ~~~ OP
+NOTE["Default allocation only • custom inputs derive different subnets<br/>Subnet presence ≠ service deployment • Azure live status: NOT RUN"]:::note
+OP ~~~ NOTE
+classDef default fill:#e8f1fa,stroke:#265f8b,color:#10283b;
+classDef hub fill:#e9f3ef,stroke:#397761,color:#153d2d;
+classDef note fill:#fff3dc,stroke:#99751c,color:#45340c;

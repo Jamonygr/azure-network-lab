@@ -18,6 +18,7 @@ module "resource_group" {
 }
 
 module "log_analytics" {
+  count  = var.deploy.log_analytics ? 1 : 0
   source = "./modules/log-analytics"
 
   name                = "log-${local.prefix}"
@@ -54,11 +55,14 @@ module "vhub_firewall" {
   count  = var.deploy.vwan && var.deploy.vhub_firewall ? 1 : 0
   source = "./modules/vhub-firewall"
 
-  name                = "fw-vhub-${local.prefix}"
-  policy_name         = "fwpol-${local.prefix}"
-  resource_group_name = module.resource_group.name
-  virtual_hub_id      = local.vhub_id
-  ctx                 = local.ctx
+  name                     = "fw-vhub-${local.prefix}"
+  policy_name              = "fwpol-${local.prefix}"
+  resource_group_name      = module.resource_group.name
+  virtual_hub_id           = local.vhub_id
+  source_cidrs             = local.lab_address_spaces
+  allowed_fqdns            = var.firewall_allowed_fqdns
+  enable_monitoring_egress = var.deploy.monitoring
+  ctx                      = local.ctx
 }
 
 module "vhub_vpn_gateway" {
@@ -176,7 +180,7 @@ module "local_network_gateway_vhub" {
   name                = "lng-vhub-${local.prefix}"
   resource_group_name = module.resource_group.name
   gateway_address     = local.vhub_gateway_tunnel_ip
-  address_space       = ["10.0.0.0/8"]
+  address_space       = concat(var.spoke1_address_space, var.spoke2_address_space)
   bgp_enabled         = true
   bgp_asn             = 65515
   bgp_peering_address = local.vhub_gateway_default_ip
@@ -242,12 +246,14 @@ module "dns_resolver" {
   count  = var.deploy.dns_resolver ? 1 : 0
   source = "./modules/dns-private-resolver"
 
-  name                = "dnspr-${local.prefix}"
-  resource_group_name = module.resource_group.name
-  virtual_network_id  = module.vnet["spoke1"].id
-  inbound_subnet_id   = module.vnet["spoke1"].subnet_ids["DnsResolverInbound"]
-  outbound_subnet_id  = module.vnet["spoke1"].subnet_ids["DnsResolverOutbound"]
-  ctx                 = local.ctx
+  name                  = "dnspr-${local.prefix}"
+  resource_group_name   = module.resource_group.name
+  virtual_network_id    = module.vnet["spoke1"].id
+  inbound_subnet_id     = module.vnet["spoke1"].subnet_ids["DnsResolverInbound"]
+  outbound_subnet_id    = module.vnet["spoke1"].subnet_ids["DnsResolverOutbound"]
+  forwarding_rules      = var.dns_forwarding_rules
+  forwarding_vnet_links = { for key in var.dns_forwarding_link_vnets : key => module.vnet[key].id }
+  ctx                   = local.ctx
 }
 
 # =============================================================================
@@ -268,14 +274,21 @@ module "application_gateway" {
   count  = var.deploy.application_gateway ? 1 : 0
   source = "./modules/application-gateway"
 
-  name                = "appgw-${local.prefix}"
-  resource_group_name = module.resource_group.name
-  subnet_id           = module.vnet["spoke1"].subnet_ids["AppGwSubnet"]
-  sku_name            = "WAF_v2"
-  sku_tier            = "WAF_v2"
-  capacity            = 1
-  waf_enabled         = true
-  ctx                 = local.ctx
+  name                  = "appgw-${local.prefix}"
+  resource_group_name   = module.resource_group.name
+  subnet_id             = module.vnet["spoke1"].subnet_ids["AppGwSubnet"]
+  sku_name              = "WAF_v2"
+  sku_tier              = "WAF_v2"
+  capacity              = null
+  waf_enabled           = true
+  backend_ip_addresses  = [for key, vm in local.vm_windows_enabled : module.vm_windows[key].private_ip_address if vm.vnet_key == "spoke1"]
+  autoscale_min         = var.application_gateway.autoscale_min
+  autoscale_max         = var.application_gateway.autoscale_max
+  waf_mode              = var.application_gateway.waf_mode
+  certificate_secret_id = var.application_gateway.certificate_secret_id
+  identity_ids          = var.application_gateway.identity_ids
+  host_name             = var.application_gateway.host_name
+  ctx                   = local.ctx
 }
 
 module "nat_gateway" {
@@ -285,7 +298,8 @@ module "nat_gateway" {
   name                = "nat-${local.prefix}"
   resource_group_name = module.resource_group.name
   subnet_associations = {
-    "Workload" = module.vnet["spoke1"].subnet_ids["Workload"]
+    "Workload"  = module.vnet["spoke1"].subnet_ids["Workload"]
+    "NvaSubnet" = module.vnet["spoke1"].subnet_ids["NvaSubnet"]
   }
   ctx = local.ctx
 }
@@ -344,10 +358,11 @@ module "vm_windows" {
   admin_username       = var.admin_username
   admin_password       = var.admin_password
   join_lb_backend_pool = each.value.join_lb_backend_pool
+  install_web_server   = each.value.vnet_key == "spoke1" && (var.deploy.load_balancer || var.deploy.application_gateway)
   lb_backend_pool_id   = each.value.join_lb_backend_pool ? try(module.load_balancer[0].backend_pool_id, null) : null
   ctx                  = local.ctx
 
-  depends_on = [module.nsg]
+  depends_on = [module.nsg, module.nat_gateway, module.nat_gateway_other, module.vhub_connection]
 }
 
 module "vm_nva" {
@@ -366,5 +381,45 @@ module "vm_nva" {
   advertised_routes   = each.value.advertised_routes
   ctx                 = local.ctx
 
-  depends_on = [module.nsg, module.route_server]
+  depends_on = [module.nsg, module.route_server, module.nat_gateway, module.nat_gateway_other]
+}
+
+# NAT Gateways cannot span VNets. Keep the original spoke1 module address and add
+# explicit egress only for optional VM networks that are outside secured-hub routing.
+module "nat_gateway_other" {
+  for_each = var.deploy.nat_gateway ? { for key, needed in {
+    spoke2 = var.deploy.spoke2_vms && !var.deploy.vhub_firewall
+    onprem = var.deploy.onprem_vms || var.deploy.nvas
+  } : key => needed if needed } : {}
+  source              = "./modules/nat-gateway"
+  name                = "nat-${each.key}-${local.prefix}"
+  resource_group_name = module.resource_group.name
+  subnet_associations = each.key == "onprem" ? {
+    Default   = module.vnet["onprem"].subnet_ids["Default"]
+    NvaSubnet = module.vnet["onprem"].subnet_ids["NvaSubnet"]
+  } : { Workload = module.vnet["spoke2"].subnet_ids["Workload"] }
+  ctx = local.ctx
+}
+
+module "monitoring" {
+  count                 = var.deploy.monitoring ? 1 : 0
+  source                = "./modules/monitoring"
+  name                  = local.prefix
+  resource_group_name   = module.resource_group.name
+  ctx                   = local.ctx
+  network_watcher       = var.monitoring.network_watcher
+  workspace_resource_id = module.log_analytics[0].id
+  workspace_id          = module.log_analytics[0].workspace_id
+  vnet_ids              = { for key, vnet in module.vnet : key => vnet.id }
+  diagnostic_target_ids = merge(
+    var.deploy.vhub_firewall ? { firewall = module.vhub_firewall[0].id } : {},
+    var.deploy.application_gateway ? { application_gateway = module.application_gateway[0].id } : {},
+    var.deploy.vpn ? { vpn_gateway = module.vpn_gateway_onprem[0].id } : {}
+  )
+  flow_logs          = var.monitoring.flow_logs
+  traffic_analytics  = var.monitoring.traffic_analytics
+  connection_monitor = var.monitoring.connection_monitor
+  source_vm_id       = try(module.vm_windows["spoke1-1"].id, null)
+  connection_target  = var.monitoring.connection_target
+  retention_days     = var.monitoring.retention_days
 }

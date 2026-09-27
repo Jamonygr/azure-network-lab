@@ -1,0 +1,6 @@
+# Copy to ignored terraform.tfvars; replace placeholders and review cost.
+lab_id = "demo01"
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id = "00000000-0000-0000-0000-000000000000"
+location = "westeurope"
+enable_paid_features = false

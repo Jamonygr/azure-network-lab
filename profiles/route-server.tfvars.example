@@ -1,0 +1,22 @@
+# Source configuration only; no deployment has been performed.
+# Overlay on a local context/subscription file; secrets come from TF_VAR_* only.
+deploy = {
+  spoke_peering = false
+  vwan = false
+  vhub_firewall = false
+  vpn = false
+  route_server = true
+  dns_resolver = false
+  private_dns_zones = false
+  bastion = false
+  application_gateway = false
+  load_balancer = false
+  nat_gateway = true
+  private_endpoint = false
+  spoke1_vms = false
+  spoke2_vms = false
+  onprem_vms = false
+  nvas = true
+  log_analytics = false
+  monitoring = false
+}

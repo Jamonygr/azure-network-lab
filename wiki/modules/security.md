@@ -1,32 +1,11 @@
-# Security modules
+# Security modules and scopes
 
-<p align="center">
-  <img src="../images/modules-security.svg" alt="Security modules banner" width="1000" />
-</p>
+NSGs attach to selected subnets. Additional administration sources come from `administration_source_cidrs`; the default is empty and a universal /0 management source is rejected. Bastion is opt-in.
 
+The secured-hub Firewall has scoped private-network rules, explicit public HTTPS names, a Windows Update FQDN tag, Windows KMS destinations and optional monitor-service access. A public wildcard is not the default. Match this inventory to [the actual module](../../modules/vhub-firewall/main.tf) before any future use.
 
-## tags
+App Gateway policy mode defaults Prevention and can be selected explicitly. The public HTTP teaching listener handles no credentials; optional certificate/identity inputs enable the reviewed frontend TLS path. Backend TLS is a separate decision.
 
-- Enforces required tags: Environment, Project, ManagedBy, Purpose.
-- Merges defaults with user-provided tags.
+The independent AVNM and Front Door examples add different policy scopes. They are not silently applied to the root.
 
-## vhub-firewall
-
-- Deploys Azure Firewall in vHub with a firewall policy.
-- Policy allows lab traffic for HTTP, HTTPS, and ICMP.
-- Routing intent sends Internet and private traffic through firewall.
-
-## nsg
-
-- Builds NSG rules from a map of rule definitions.
-- Attaches NSGs to multiple subnets in one module call.
-
-## Related pages
-
-- Security model: `architecture/security-model.md`
-- Hardening: `reference/hardening.md`
-- [Security model](../architecture/security-model.md)
-- [Firewall and routing intent](../architecture/firewall-and-routing-intent.md)
-- [Hardening checklist](../reference/hardening.md)
-- [Ports and protocols](../reference/ports-and-protocols.md)
-
+Private access also depends on identity and service authorization. A network allow does not grant a secret/blob read, and an RBAC role cannot establish a route. [Security model](../architecture/security-model.md) · [Hardening](../reference/hardening.md)

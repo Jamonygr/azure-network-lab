@@ -1,4 +1,14 @@
 locals {
+  spoke1_prefix_length = tonumber(split("/", var.spoke1_address_space[0])[1])
+  spoke2_prefix_length = tonumber(split("/", var.spoke2_address_space[0])[1])
+  onprem_prefix_length = tonumber(split("/", var.onprem_address_space[0])[1])
+  lab_address_spaces   = concat(var.spoke1_address_space, var.spoke2_address_space, var.onprem_address_space)
+  address_ranges = [for cidr in concat(local.lab_address_spaces, [var.vhub_address_prefix]) : {
+    first = try(sum([for i, octet in split(".", cidrhost(cidr, 0)) : tonumber(octet) * pow(256, 3 - i)]), 0)
+    last  = try(sum([for i, octet in split(".", cidrhost(cidr, -1)) : tonumber(octet) * pow(256, 3 - i)]), 0)
+  }]
+  nonoverlapping_ranges = alltrue(flatten([for i, a in local.address_ranges : [for j, b in local.address_ranges : i == j || a.last < b.first || b.last < a.first]]))
+
   // Naming prefix for single lab environment.
   prefix = lower(var.ctx.project)
 
@@ -14,28 +24,28 @@ locals {
   // =============================================================================
   spoke1_subnets = {
     "Workload" = {
-      address_prefix    = "10.1.1.0/24"
+      address_prefix    = cidrsubnet(var.spoke1_address_space[0], 24 - local.spoke1_prefix_length, 1)
       service_endpoints = []
       delegation        = null
     }
     "AppGwSubnet" = {
-      address_prefix    = "10.1.2.0/24"
+      address_prefix    = cidrsubnet(var.spoke1_address_space[0], 24 - local.spoke1_prefix_length, 2)
       service_endpoints = []
       delegation        = null
     }
     "AzureBastionSubnet" = {
-      address_prefix    = "10.1.3.0/26"
+      address_prefix    = cidrsubnet(var.spoke1_address_space[0], 26 - local.spoke1_prefix_length, 12)
       service_endpoints = []
       delegation        = null
     }
     "PrivateEndpointSubnet" = {
-      address_prefix                    = "10.1.4.0/24"
+      address_prefix                    = cidrsubnet(var.spoke1_address_space[0], 24 - local.spoke1_prefix_length, 4)
       service_endpoints                 = []
       delegation                        = null
       private_endpoint_network_policies = "Disabled"
     }
     "DnsResolverInbound" = {
-      address_prefix    = "10.1.5.0/28"
+      address_prefix    = cidrsubnet(var.spoke1_address_space[0], 28 - local.spoke1_prefix_length, 80)
       service_endpoints = []
       delegation = {
         name         = "dns-resolver-delegation"
@@ -44,7 +54,7 @@ locals {
       }
     }
     "DnsResolverOutbound" = {
-      address_prefix    = "10.1.5.16/28"
+      address_prefix    = cidrsubnet(var.spoke1_address_space[0], 28 - local.spoke1_prefix_length, 81)
       service_endpoints = []
       delegation = {
         name         = "dns-resolver-delegation"
@@ -53,17 +63,17 @@ locals {
       }
     }
     "LoadBalancerSubnet" = {
-      address_prefix    = "10.1.6.0/24"
+      address_prefix    = cidrsubnet(var.spoke1_address_space[0], 24 - local.spoke1_prefix_length, 6)
       service_endpoints = []
       delegation        = null
     }
     "RouteServerSubnet" = {
-      address_prefix    = "10.1.7.0/27"
+      address_prefix    = cidrsubnet(var.spoke1_address_space[0], 27 - local.spoke1_prefix_length, 56)
       service_endpoints = []
       delegation        = null
     }
     "NvaSubnet" = {
-      address_prefix    = "10.1.8.0/24"
+      address_prefix    = cidrsubnet(var.spoke1_address_space[0], 24 - local.spoke1_prefix_length, 8)
       service_endpoints = []
       delegation        = null
     }
@@ -74,7 +84,7 @@ locals {
   // =============================================================================
   spoke2_subnets = {
     "Workload" = {
-      address_prefix    = "10.2.1.0/24"
+      address_prefix    = cidrsubnet(var.spoke2_address_space[0], 24 - local.spoke2_prefix_length, 1)
       service_endpoints = ["Microsoft.Storage"]
       delegation        = null
     }
@@ -85,17 +95,17 @@ locals {
   // =============================================================================
   onprem_subnets = {
     "GatewaySubnet" = {
-      address_prefix    = "192.168.0.0/27"
+      address_prefix    = cidrsubnet(var.onprem_address_space[0], 27 - local.onprem_prefix_length, 0)
       service_endpoints = []
       delegation        = null
     }
     "Default" = {
-      address_prefix    = "192.168.1.0/24"
+      address_prefix    = cidrsubnet(var.onprem_address_space[0], 24 - local.onprem_prefix_length, 1)
       service_endpoints = []
       delegation        = null
     }
     "NvaSubnet" = {
-      address_prefix    = "192.168.2.0/24"
+      address_prefix    = cidrsubnet(var.onprem_address_space[0], 24 - local.onprem_prefix_length, 2)
       service_endpoints = []
       delegation        = null
     }
@@ -105,60 +115,88 @@ locals {
   // NSG Rules
   // =============================================================================
   default_nsg_rules = {
-    "AllowRDP" = {
+    AllowRDP = {
       priority                   = 100
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
       source_port_range          = "*"
       destination_port_range     = "3389"
-      source_address_prefix      = "10.0.0.0/8"
+      source_address_prefixes    = concat([local.spoke1_subnets["AzureBastionSubnet"].address_prefix], var.administration_source_cidrs)
       destination_address_prefix = "*"
     }
-    "AllowICMP" = {
+    AllowICMP = {
       priority                   = 110
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Icmp"
       source_port_range          = "*"
       destination_port_range     = "*"
-      source_address_prefix      = "*"
+      source_address_prefixes    = local.lab_address_spaces
       destination_address_prefix = "*"
     }
-    "AllowHTTP" = {
+    AllowHTTP = {
       priority                   = 120
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
       source_port_range          = "*"
       destination_port_range     = "80"
-      source_address_prefix      = "*"
+      source_address_prefixes    = local.lab_address_spaces
       destination_address_prefix = "*"
     }
-    "AllowHTTPS" = {
+    AllowHTTPS = {
       priority                   = 130
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
       source_port_range          = "*"
       destination_port_range     = "443"
-      source_address_prefix      = "*"
+      source_address_prefixes    = local.lab_address_spaces
       destination_address_prefix = "*"
     }
-  }
-
-  onprem_nsg_rules = merge(local.default_nsg_rules, {
-    "AllowRDPFromInternet" = {
-      priority                   = 200
+    AllowLoadBalancerProbe = {
+      priority                   = 140
       direction                  = "Inbound"
       access                     = "Allow"
       protocol                   = "Tcp"
       source_port_range          = "*"
-      destination_port_range     = "3389"
-      source_address_prefix      = "192.168.0.0/16"
+      destination_port_range     = "80"
+      source_address_prefix      = "AzureLoadBalancer"
       destination_address_prefix = "*"
     }
-  })
+    AllowRouteServerBGP = {
+      priority                   = 150
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "Tcp"
+      source_port_range          = "*"
+      destination_port_range     = "179"
+      source_address_prefix      = local.spoke1_subnets["RouteServerSubnet"].address_prefix
+      destination_address_prefix = local.spoke1_subnets["NvaSubnet"].address_prefix
+    }
+    AllowConditionalDNS = {
+      priority                   = 160
+      direction                  = "Inbound"
+      access                     = "Allow"
+      protocol                   = "*"
+      source_port_range          = "*"
+      destination_port_range     = "53"
+      source_address_prefix      = local.spoke1_subnets["DnsResolverOutbound"].address_prefix
+      destination_address_prefix = "*"
+    }
+    DenyOtherInbound = {
+      priority                   = 4096
+      direction                  = "Inbound"
+      access                     = "Deny"
+      protocol                   = "*"
+      source_port_range          = "*"
+      destination_port_range     = "*"
+      source_address_prefix      = "*"
+      destination_address_prefix = "*"
+    }
+  }
+  onprem_nsg_rules = local.default_nsg_rules
 
   // =============================================================================
   // Data-driven maps for for_each
@@ -285,7 +323,7 @@ locals {
       name              = "vm-onprem-nva"
       vnet_key          = "onprem"
       subnet_name       = "NvaSubnet"
-      private_ip        = "192.168.2.10"
+      private_ip        = cidrhost(local.onprem_subnets["NvaSubnet"].address_prefix, 10)
       bgp_asn           = null
       advertised_routes = []
     }
@@ -293,7 +331,7 @@ locals {
       name              = "vm-spoke1-nva"
       vnet_key          = "spoke1"
       subnet_name       = "NvaSubnet"
-      private_ip        = "10.1.8.10"
+      private_ip        = cidrhost(local.spoke1_subnets["NvaSubnet"].address_prefix, 10)
       bgp_asn           = var.deploy.route_server ? 65501 : null
       advertised_routes = var.deploy.route_server ? ["10.100.0.0/16"] : []
     }
@@ -301,7 +339,7 @@ locals {
 
   route_server_bgp_connections = var.deploy.nvas ? {
     "spoke1-nva" = {
-      peer_ip  = "10.1.8.10"
+      peer_ip  = cidrhost(local.spoke1_subnets["NvaSubnet"].address_prefix, 10)
       peer_asn = 65501
     }
   } : {}
@@ -313,7 +351,7 @@ locals {
   private_dns_zones_enabled = var.deploy.private_dns_zones ? local.private_dns_zones : {}
   vm_windows_enabled        = { for k, v in local.vm_windows : k => v if v.enabled }
   vm_nva_enabled            = var.deploy.nvas ? local.vm_nva : {}
-  vnet_peerings_enabled     = var.deploy.route_server ? local.vnet_peerings : {}
+  vnet_peerings_enabled     = var.deploy.spoke_peering || var.deploy.route_server ? local.vnet_peerings : {}
 
   // Derived values.
   ctx = {
@@ -323,11 +361,11 @@ locals {
   }
 
   project_tag                 = try(module.tags.tags["Project"], "")
-  storage_account_name_prefix = "st${lower(replace(local.project_tag, "-", ""))}"
+  storage_account_name_prefix = "st${substr(lower(replace(local.project_tag, "-", "")), 0, 14)}"
   vwan_id                     = try(module.vwan[0].id, null)
   vhub_id                     = try(module.vhub[0].id, null)
   vhub_bgp_settings           = try(module.vhub_vpn_gateway[0].bgp_settings, [])
   vhub_bgp_instance0          = try(local.vhub_bgp_settings[0].instance_0_bgp_peering_address[0], null)
-  vhub_gateway_tunnel_ip      = try(local.vhub_bgp_instance0.tunnel_ips[0], null)
-  vhub_gateway_default_ip     = try(local.vhub_bgp_instance0.default_ips[0], null)
+  vhub_gateway_tunnel_ip      = try(sort(tolist(local.vhub_bgp_instance0.tunnel_ips))[0], null)
+  vhub_gateway_default_ip     = try(sort(tolist(local.vhub_bgp_instance0.default_ips))[0], null)
 }

@@ -1,0 +1,21 @@
+flowchart TB
+accTitle: AZ-700 learning and documentation map
+accDescr: Read the five-domain book and objective matrix, then choose a main-root profile, an independent example, or a design exercise. Local validation is separate from future Azure evidence.
+R["README<br/>Scope • safe starter • validation status"] --> B["Wiki book<br/>Five-domain curriculum"]
+B --> D1["1 Core<br/>25–30%"]
+B --> D2["2 Connectivity<br/>20–25%"]
+B --> D3["3 Delivery<br/>15–20%"]
+B --> D4["4 Private access<br/>10–15%"]
+B --> D5["5 Security<br/>15–20%"]
+D1 & D2 --> P["Main-root profiles<br/>minimal • vWAN • VPN • Route Server<br/>private DNS • delivery • legacy review"]
+D3 & D4 & D5 --> E["Independent examples<br/>AVNM • Front Door • Traffic Manager<br/>Private Link service • endpoint policy • P2S • DDoS"]
+P & E --> M["Objective matrix<br/>Terraform-backed • reference configuration • design exercise"]
+M --> X["Design worksheets<br/>ExpressRoute • BYOIP • appliance • external VPN • Defender"]
+M --> V["Local checks<br/>schema • mock assertions • links • diagrams"]
+X & V --> N["Evidence boundary<br/>Azure deployment and live traffic: NOT RUN"]
+classDef base fill:#e8f1fa,stroke:#265f8b,color:#10283b,stroke-width:2px;
+classDef warm fill:#fff3dc,stroke:#99751c,color:#45340c;
+classDef status fill:#e9f3ef,stroke:#397761,color:#153d2d;
+class R,B,D1,D2,D3,D4,D5,P,E,M base;
+class X warm;
+class V,N status;

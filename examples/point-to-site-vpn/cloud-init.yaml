@@ -1,0 +1,22 @@
+#cloud-config
+package_update: false
+package_upgrade: false
+write_files:
+  - path: /opt/network-lab/index.html
+    permissions: '0644'
+    content: |
+      network-lab-private-http
+  - path: /etc/systemd/system/network-lab-http.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Disposable lab HTTP responder
+      After=network.target
+      [Service]
+      ExecStart=/usr/bin/python3 -m http.server 80 --bind 0.0.0.0 --directory /opt/network-lab
+      Restart=on-failure
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - systemctl daemon-reload
+  - systemctl enable --now network-lab-http.service

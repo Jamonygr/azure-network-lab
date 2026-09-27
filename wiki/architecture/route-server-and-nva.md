@@ -1,68 +1,13 @@
 # Route Server and NVA
 
-<p align="center">
-  <img src="../images/architecture-route-server-and-nva.svg" alt="Route Server and NVA banner" width="1000" />
-</p>
+![BGP control plane separated from application traffic](../../docs/diagrams/route-server.svg)
 
+*Dashed BGP edges represent control-plane exchange. Solid traffic edges go through the NVA, not Route Server. A synthetic advertised prefix is not a real destination network.*
 
-This page explains how Azure Route Server is paired with a Windows RRAS NVA to provide BGP route exchange in the lab.
+The root uses Route Server in Spoke1 and an RRAS NVA for the routing exercise. The selected profile also creates a branch NVA, without an inter-NVA tunnel, and selects no workload VMs. The default teaching ASN is 65501 for the NVA; Route Server uses the Azure ASN exposed by its output. An advertised `10.100.0.0/16` demonstrates route learning and does not create a reachable workload in that prefix.
 
-## Route Server
+Review the NVA extension/template, IP forwarding, BGP peers and local operating-system configuration. Terraform declaring a peer is not proof that RRAS successfully configured or established both sessions. The complete topology should peer an NVA with both Route Server instances for resilience. [Microsoft guidance](https://learn.microsoft.com/en-us/azure/route-server/route-server-faq)
 
-Created by `modules/route-server`:
+The Route Server VNet cannot simultaneously connect to a vWAN hub. The root's omitted Spoke1 connection is intentional. Explain peering flags and learned-route behavior separately; do not infer them from a simple line in a diagram.
 
-- Standard SKU.
-- Uses a Standard public IP with zone redundancy.
-- Branch-to-branch traffic enabled.
-- BGP peers are defined by `locals.route_server_bgp_connections`.
-
-Default BGP peer when `deploy.nvas = true`:
-
-- Peer IP: 10.1.8.10 (Spoke1 NVA).
-- Peer ASN: 65501.
-
-## NVA VM (RRAS)
-
-Created by `modules/vm-windows-nva`:
-
-- Windows Server 2022 Datacenter Core.
-- Static IP (Spoke1 NVA: 10.1.8.10).
-- IP forwarding enabled on the NIC.
-- Custom Script extension installs RRAS and configures BGP.
-
-### RRAS startup behavior
-
-The extension creates a scheduled task that runs at startup:
-
-- Installs RemoteAccess and Routing features.
-- Ensures the RemoteAccess service is running.
-- Configures BGP router and peers.
-- Adds custom routes if specified.
-
-Logs are written to `C:\rras-config.log`.
-
-## BGP behavior
-
-- BGP peers are created only when `deploy.nvas = true` and Route Server IPs are available.
-- Default advertised routes are provided by `locals.vm_nva.advertised_routes`.
-- Route Server ASN is 65515; NVA ASN is 65501.
-
-## Validation commands
-
-```bash
-az network routeserver show -g rg-<prefix> -n rs-<prefix> -o table
-az network routeserver peering list -g rg-<prefix> --routeserver rs-<prefix> -o table
-
-az vm run-command invoke -g rg-<prefix> -n vm-spoke1-nva \
-  --command-id RunPowerShellScript \
-  --scripts "Get-BgpPeer | Format-Table Name,PeerIPAddress,PeerASN,State,SessionState"
-```
-
-## Related pages
-
-- Routing overview: `architecture/routing-and-bgp.md`
-- Scenario: `scenarios/route-server-bgp.md`
-- [Scenario: Route Server and NVA (BGP)](../scenarios/route-server-bgp.md)
-- [Route validation](../testing/route-validation.md)
-- [ASNs and IPs](../reference/asn-and-ips.md)
-
+Use the [Route Server exercise](../scenarios/route-server-bgp.md) and [route validation worksheet](../testing/route-validation.md). Guest bootstrapping, BGP state and data traffic remain NOT RUN.

@@ -40,3 +40,18 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Local validation evidence and tooling
+.local/
+node_modules/
+*.tfvars
+*.pem
+*.pfx
+*.key
+
+__pycache__/
+*.pyc
+
+.env
+.env.*
+*.p12

@@ -1,0 +1,17 @@
+flowchart LR
+accTitle: Monitoring signals and evidence boundaries
+accDescr: Configuration checks, VNet flow records, resource diagnostics, connection probes, and Defender interpretation answer different questions. Only correlated live observations could prove a real path. This update has no live Azure evidence.
+CFG["Terraform source<br/>Schema + mock assertions"]:::config --> C["Configuration evidence<br/>Intended values and relationships"]:::config
+V["VNet traffic"]:::network --> FL["VNet flow logs<br/>Storage + optional analytics"]:::signal
+R["Firewall / gateway / service"]:::network --> DL["Diagnostic categories<br/>Log Analytics"]:::signal
+P["Configured probe source<br/>Agent/prerequisites required"]:::network --> CM["Connection Monitor<br/>Reachability and latency"]:::signal
+FL & DL & CM --> E["Correlate source + destination<br/>Identity • timestamp • selected route<br/>Expected result vs observation"]:::evidence
+C -.->|"Does not establish live traffic"| E
+D["Defender findings<br/>Design worksheet only"]:::note --> W["Explain exposure and remediation<br/>Synthetic example, no assessment"]:::note
+E --> N["Current Azure evidence<br/>NOT RUN"]:::note
+W ~~~ N
+classDef config fill:#eef0f5,stroke:#65718a,color:#243047;
+classDef network fill:#e8f1fa,stroke:#265f8b,color:#10283b;
+classDef signal fill:#edf0fa,stroke:#646b9e,color:#2d3354;
+classDef evidence fill:#e9f3ef,stroke:#397761,color:#153d2d;
+classDef note fill:#fff3dc,stroke:#99751c,color:#45340c;

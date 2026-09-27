@@ -1,29 +1,9 @@
-# PaaS modules
+# Storage and private service boundaries
 
-<p align="center">
-  <img src="../images/modules-paas.svg" alt="PaaS modules banner" width="1000" />
-</p>
+The main private-DNS profile owns a sample storage account, Blob private endpoint and optional private DNS association. Its public-network access is disabled. That setting does not grant a user or VM a Blob data role.
 
+The monitoring module uses a separate account with default-deny network rules and trusted service writes. Its flow-log support requirements differ from the private-only sample. Do not describe every repository storage account as public-network-disabled.
 
-## storage-account
+The independent service-endpoint-policy example contrasts allowed and forbidden storage destinations with comparable client authorization. It owns a second resource group for the allowed destination scope. The Private Link service example exposes a custom backend rather than a Microsoft-managed Blob subresource.
 
-- Standard LRS storage account with TLS 1.2 enforced.
-- Public network access is disabled by default.
-- Name uses a deterministic prefix plus a random suffix.
-
-## private-endpoint
-
-- Creates a private endpoint for the storage account (blob).
-- Adds a private DNS zone group when zone IDs are provided.
-
-## Notes
-
-- Public access can only be enabled if explicitly allowed.
-- Private endpoints live in the Spoke1 `PrivateEndpointSubnet`.
-
-## Related pages
-
-- [Scenario: Edge services (LB, NAT, App Gateway, Bastion)](../scenarios/edge-services.md)
-- [Defaults and SKUs](../reference/defaults-and-skus.md)
-- [Feature matrix](../reference/feature-matrix.md)
-- [Architecture overview](../architecture/overview.md)
+For future evidence, pair DNS and selected route with endpoint approval and an authorized data operation. Public-endpoint denial must be a network result under an otherwise authorized identity. [Private access curriculum](../domains/04-private-access.md)

@@ -1,56 +1,11 @@
-# Edge services
+# Application delivery and security boundaries
 
-<p align="center">
-  <img src="../images/architecture-edge-services.svg" alt="Edge services banner" width="1000" />
-</p>
+![DNS routing, regional proxying and a private origin](../../docs/diagrams/delivery-security.svg)
 
+*These are comparison lanes. Traffic Manager, the root App Gateway/LB scenario, and the independent Front Door example are not implicitly chained together.*
 
-Edge services live in Spoke1 and are optional. They are intended for lab validation, not production workloads.
+The root has a Standard internal load balancer and optional WAF_v2 Application Gateway. Match backend addresses, ports, probe path and guest service before expecting health. HTTPS references require a real certificate secret and suitable identity access; HTTP-only teaching settings are not equivalent to end-to-end TLS.
 
-## Internal Load Balancer (ILB)
+The [Front Door example](../../examples/front-door-private-origin/README.md) uses Premium for a Private Link origin, with approval as a manual dependency. Its public frontend remains a public web entry point. The [Traffic Manager example](../../examples/traffic-manager/README.md) teaches DNS routing with separate regional endpoints.
 
-Created by `modules/load-balancer`:
-
-- Standard internal load balancer.
-- Frontend uses a dynamic private IP in `LoadBalancerSubnet`.
-- HTTP probe on port 80 and a TCP rule for port 80.
-
-## NAT Gateway
-
-Created by `modules/nat-gateway`:
-
-- Standard NAT gateway with static public IP.
-- Associated to the Spoke1 Workload subnet.
-- Zone 1 by default (module setting).
-
-## Application Gateway
-
-Created by `modules/application-gateway`:
-
-- WAF_v2 SKU, capacity 1.
-- Listener on HTTP port 80.
-- WAF enabled in Detection mode.
-- Backend pool is empty by default (add targets before testing).
-
-## Bastion
-
-Created by `modules/bastion`:
-
-- Basic SKU by default.
-- Public IP is standard and zone-redundant.
-- Advanced features (tunneling, file copy) require Standard SKU.
-
-## Validation hints
-
-- Install IIS on workload VMs before testing ILB/App Gateway.
-- Use outputs: `load_balancer_frontend_ip` and `application_gateway_public_ip`.
-
-## Related pages
-
-- Scenario: `scenarios/edge-services.md`
-- Ports: `reference/ports-and-protocols.md`
-- [Scenario: Edge services (LB, NAT, App Gateway, Bastion)](../scenarios/edge-services.md)
-- [Defaults and SKUs](../reference/defaults-and-skus.md)
-- [Security modules](../modules/security.md)
-- [Networking modules](../modules/networking.md)
-
+Use WAF policy mode and rules as an application-security decision. A WAF allow or block is different from a failed origin health probe. [Delivery curriculum](../domains/03-delivery.md) · [Edge exercise](../scenarios/edge-services.md)

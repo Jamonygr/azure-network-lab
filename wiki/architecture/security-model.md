@@ -1,69 +1,17 @@
 # Security model
 
-<p align="center">
-  <img src="../images/architecture-security-model.svg" alt="Security model banner" width="1000" />
-</p>
+The configuration separates network controls from identity and service controls. An NSG rule cannot authorize a Blob read; an RBAC role cannot supply a missing private route. An endpoint approval is another independent decision.
 
+| Layer | Main configuration/evidence |
+|---|---|
+| Scope and identity | Correct tenant/subscription, RBAC permissions, resource ownership |
+| Routing | Effective route and return route; real traversal of inspection device |
+| Network filtering | NSG/ASG, AVNM administration, Firewall rules |
+| Application filtering | WAF policy association, mode and matched rule |
+| Private service boundary | Endpoint approval, private DNS, public-network setting |
+| Data authorization | Authorized request using the intended identity |
+| Detection | Flow records, diagnostics, probes and resource health |
 
-The lab uses layered security with a focus on visibility and learning, not strict lockdown. The defaults are intentionally permissive to make lab testing easy, but the hardening checklist explains how to tighten them.
+Least-privilege review starts with explicit administration sources and an explicit outbound list. Do not add broad Internet RDP or wildcard egress to make a test appear successful. Changes to a profile can affect multiple services and their cost.
 
-## Layers of protection
-
-- Hub security: optional Azure Firewall with routing intent.
-- Subnet security: NSGs on workload and NVA subnets.
-- PaaS access: storage account is private by default.
-- Identity: local VM admin credentials plus VPN shared keys.
-
-## Network Security Groups (NSGs)
-
-Baseline rules are applied to workload and NVA subnets:
-
-| Rule | Port/Proto | Source | Purpose |
-|------|------------|--------|---------|
-| AllowRDP | TCP 3389 | 10.0.0.0/8 | Lab VM access. |
-| AllowICMP | ICMP | * | Ping tests. |
-| AllowHTTP | TCP 80 | * | Web tests for ILB/App Gateway. |
-| AllowHTTPS | TCP 443 | * | HTTPS tests. |
-
-On-premises NSG adds:
-
-- AllowRDPFromInternet: TCP 3389 from 192.168.0.0/16.
-
-## Secured hub (Azure Firewall)
-
-When enabled, the lab deploys:
-
-- Azure Firewall (hub SKU).
-- Firewall Policy with default allow rules for lab traffic.
-- Routing Intent for Internet and private traffic.
-
-Current firewall policy behavior (lab default):
-
-- Allow all outbound TCP/UDP/ICMP from 10.0.0.0/8 and 192.168.0.0/16.
-- Allow HTTP/HTTPS application traffic from the same ranges.
-- Threat intelligence mode is set to Alert.
-- DNS proxy is enabled.
-
-## Private access
-
-- Storage account public access is disabled.
-- Private Endpoint is created in Spoke1 when enabled.
-- Private DNS zones provide name resolution for private endpoints.
-
-## NVA security
-
-- NVA NICs have IP forwarding enabled.
-- RRAS and BGP are configured by a startup script and scheduled task.
-
-## Operational guidance
-
-- Use Bastion when enabled for administrative access.
-- Rotate admin passwords and VPN shared keys.
-- For real-world hardening steps, see `reference/hardening.md`.
-
-## Related pages
-
-- [Firewall and routing intent](firewall-and-routing-intent.md)
-- [Hardening checklist](../reference/hardening.md)
-- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
-- [Ports and protocols](../reference/ports-and-protocols.md)
+State and saved plans may contain secrets even when outputs are marked sensitive. Follow [state handling](../reference/state-and-secrets.md) and [SECURITY.md](../../SECURITY.md). Live enforcement, real identity permissions and external connectivity remain NOT RUN.

@@ -1,60 +1,9 @@
-# ASNs and IPs
+# Address and BGP teaching values
 
-<p align="center">
-  <img src="../images/reference-asn-and-ips.svg" alt="ASNs and IPs banner" width="1000" />
-</p>
+The default main topology uses Spoke1 10.1.0.0/16, Spoke2 10.2.0.0/16, branch 192.168.0.0/16 and hub 10.10.0.0/23. [Subnet ledger](../architecture/network-topology.md)
 
+The Spoke1 NVA's default teaching private address is 10.1.8.10 and ASN is 65501. Root Route Server outputs expose its actual configured instance addresses/ASN. The branch-side gateway uses the root's configured ASN; inspect current wiring before comparing it with an external device.
 
-This page summarizes the default ASNs and key IP addresses used in the lab. Dynamic values (like vHub gateway IPs) are derived during apply and may not be exposed as outputs.
+The 10.100.0.0/16 NVA advertisement is synthetic. No backend in that range is created. Route learning and destination reachability are separate learning outcomes. On-prem NVA presence does not imply a tunnel to the Spoke1 NVA.
 
-## BGP ASNs
-
-| Component | ASN | Source |
-|-----------|-----|--------|
-| vHub VPN Gateway | 65515 | `modules/vhub-vpn-gateway` |
-| Azure Route Server | 65515 | Azure default (Route Server) |
-| Spoke1 NVA (RRAS) | 65501 | `locals.vm_nva` |
-| OnPrem VPN Gateway | 65510 | `main.tf` |
-
-## Default NVA IPs
-
-| NVA | IP | Subnet |
-|-----|----|--------|
-| Spoke1 NVA | 10.1.8.10 | Spoke1 `NvaSubnet` |
-| OnPrem NVA | 192.168.2.10 | OnPrem `NvaSubnet` |
-
-## Route Server IPs
-
-Route Server peer IPs are created by Azure and returned in outputs:
-
-- `route_server_virtual_router_ips`
-
-Use these for BGP peering validation and NVA configuration checks.
-
-## vHub gateway IPs
-
-The vHub VPN gateway exposes tunnel and default IPs used by the local network gateway:
-
-- `local.vhub_gateway_tunnel_ip`
-- `local.vhub_gateway_default_ip`
-
-These are derived in `locals.tf` and are not exposed as outputs by default. Use `terraform console` or the state file if you need to inspect them.
-
-## Address spaces (default)
-
-| Network | CIDR |
-|---------|------|
-| vHub | 10.10.0.0/23 |
-| Spoke1 | 10.1.0.0/16 |
-| Spoke2 | 10.2.0.0/16 |
-| OnPrem | 192.168.0.0/16 |
-
-## Related pages
-
-- Network topology: `architecture/network-topology.md`
-- Routing: `architecture/routing-and-bgp.md`
-- [Routing and BGP](../architecture/routing-and-bgp.md)
-- [Scenario: VPN and BGP](../scenarios/vpn-bgp.md)
-- [Scenario: Route Server and NVA (BGP)](../scenarios/route-server-bgp.md)
-- [Route Server and NVA](../architecture/route-server-and-nva.md)
-
+When changing parent CIDRs, inspect all derived offsets and peer references. Do not carry the diagram's literal IPs into a custom deployment. [BGP exercise](../scenarios/route-server-bgp.md)

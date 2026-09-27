@@ -1,0 +1,6 @@
+.local/
+.terraform/
+terraform.tfvars
+*.tfstate*
+*.tfplan*
+*.log

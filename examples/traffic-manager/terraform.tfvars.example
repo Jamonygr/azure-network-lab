@@ -1,0 +1,10 @@
+# Copy to ignored terraform.tfvars; replace placeholders and review cost.
+lab_id = "demo01"
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id = "00000000-0000-0000-0000-000000000000"
+location = "westeurope"
+enable_paid_features = false
+secondary_location = "northeurope"
+routing_method = "Priority"
+# endpoint_weights = { primary = 80, secondary = 20 }
+# geographic_mappings = { primary = ["GEO-EU"], secondary = ["WORLD"] }

@@ -1,61 +1,26 @@
-# Defaults and SKUs
+# Defaults, supported services and lifecycle review
 
-<p align="center">
-  <img src="../images/reference-defaults-and-skus.svg" alt="Defaults and SKUs banner" width="1000" />
-</p>
+Reviewed 27 September 2026. Current code and the selected region remain the source of deployment requirements.
 
+| Topic | Repository decision and current platform note |
+|---|---|
+| Toolchain | Terraform 1.16.4; AzureRM 4.57.0; retain lockfiles |
+| Default footprint | Network-only main root; optional services explicitly selected |
+| Egress | Subnets disable implicit outbound; NAT/Firewall paths are explicit |
+| Load balancing | Standard LB; current probe threshold; no new Basic LB |
+| App Gateway | WAF_v2; optional certificate-backed frontend; supported TLS policy |
+| Front Door | Independent Premium private-origin example; no classic setup |
+| Monitoring | VNet flow logs, never new NSG-target flow logs |
+| VPN | Review service-specific current SKU guidance rather than equating Basic IP retirement with Basic VPN Gateway retirement |
 
-This page lists the key defaults and SKUs used across the lab. Values are drawn from module defaults and the root module wiring.
+New VNets created using API versions released after **31 March 2026** default private. Earlier APIs can retain older behavior; existing VNets are not all retroactively disconnected. [Outbound access](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/default-outbound-access)
 
-## Core networking
+Basic LB retired **30 September 2025**. VMSS inbound NAT-pool creation stops **15 November 2026**, with retirement **30 September 2027**; this is distinct from individual inbound NAT rules. [LB lifecycle](https://learn.microsoft.com/en-us/lifecycle/products/azure-basic-load-balancer), [LB changes](https://learn.microsoft.com/en-us/azure/load-balancer/whats-new)
 
-| Service | Default | Notes |
-|---------|---------|-------|
-| Virtual WAN | Standard | `type = "Standard"` |
-| Virtual Hub | Standard | Address prefix from `var.vhub_address_prefix` |
-| vHub Firewall | AZFW_Hub Standard | Firewall policy Standard, DNS proxy enabled |
-| vHub VPN Gateway | Scale unit 1 | BGP ASN 65515 |
-| Route Server | Standard | Zonal public IP |
+Application Gateway v1 retired **28 April 2026**. TLS 1.0/1.1 support ended **31 August 2025**. Front Door classic retires **31 March 2027**. [App Gateway retirement](https://learn.microsoft.com/en-us/azure/application-gateway/v1-retirement), [TLS changes](https://learn.microsoft.com/en-us/azure/application-gateway/application-gateway-tls-version-retirement), [Front Door FAQ](https://learn.microsoft.com/en-us/azure/frontdoor/classic-retirement-faq)
 
-## Edge services
+New NSG flow logs stopped **30 June 2025** and retire **30 September 2027**. [Monitoring guidance](https://learn.microsoft.com/en-us/azure/networking/design-guide/monitor)
 
-| Service | Default | Notes |
-|---------|---------|-------|
-| Load Balancer | Standard | Internal, HTTP probe on port 80 |
-| NAT Gateway | Standard | Zonal (zone 1), idle timeout 10 min |
-| Application Gateway | WAF_v2 | WAF enabled (Detection), capacity 1 |
-| Bastion | Basic | Standard SKU enables advanced features |
+VPN Gateway IP migration follows separate service rules; Basic VPN Gateway is not itself declared retired. [Gateway guidance](https://learn.microsoft.com/en-us/azure/vpn-gateway/basic-public-ip-migrate-about)
 
-## VPN
-
-| Service | Default | Notes |
-|---------|---------|-------|
-| OnPrem VPN Gateway | VpnGw1 | Route-based, BGP enabled |
-| VPN Connection | IKEv2 | Shared key required |
-
-## DNS and private access
-
-| Service | Default | Notes |
-|---------|---------|-------|
-| DNS Private Resolver | Enabled by flag | Inbound/outbound endpoints in Spoke1 |
-| Private DNS zones | `lab.internal`, `privatelink.blob.core.windows.net` | Linked to all VNets |
-| Storage account | Standard LRS | TLS 1.2, public access disabled |
-
-## Compute
-
-| Service | Default | Notes |
-|---------|---------|-------|
-| Windows VMs | Server 2022 Datacenter Core | Small disk image |
-| VM size | Standard_B2s | Override via `vm_size` |
-
-## Notes
-
-- Defaults can be overridden in the root module or `terraform.tfvars`.
-- Check module `variables.tf` files for precise defaults.
-
-## Related pages
-
-- [Cost model](cost-model.md)
-- [Scenario: Minimal cost lab](../scenarios/minimal-cost.md)
-- [Feature matrix](feature-matrix.md)
-- [Variables reference](variables.md)
+A supported SKU in source does not prove region availability, quota, zone support or successful provisioning. Those live checks are NOT RUN.

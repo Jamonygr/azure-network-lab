@@ -1,51 +1,57 @@
-# Scenario: Secured hub and firewall
+# Secured hub: path before policy
 
-<p align="center">
-  <img src="../images/scenarios-secured-hub-firewall.svg" alt="Scenario: Secured hub and firewall banner" width="1000" />
-</p>
+**Mode:** configuration exercise. **Azure deployment and live verification: NOT RUN.**
 
+## Objectives and configuration
 
-## Goal
+Firewall, routing intent and controlled egress.
 
-Validate that Azure Firewall is deployed in the vHub and that routing intent is active for hub connections.
+Use [profiles/vwan-secured.tfvars.example](../../profiles/vwan-secured.tfvars.example) with the main root. Review firewall_allowed_fqdns, exact source CIDRs, internal rules, Windows Update tag and intent. The default HTTPS names are www.microsoft.com and learn.microsoft.com.
 
-## Required toggles
+## Step 1 — Review without Azure
 
-- `deploy.vwan = true`
-- `deploy.vhub_firewall = true`
+From the repository root:
 
-## Steps
-
-1. Apply the lab and capture outputs.
-2. Confirm firewall and policy resources exist.
-3. Verify vHub connections have Internet security enabled.
-
-## Commands
-
-```bash
-# Firewall and policy
-az network firewall show -g rg-<prefix> -n fw-vhub-<prefix> -o table
-az network firewall policy show -g rg-<prefix> -n fwpol-<prefix> -o table
-
-# vHub connections and security flag
-az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix> -o table
+```powershell
+Get-Content profiles/vwan-secured.tfvars.example
+Get-Content modules/vhub-firewall/main.tf
 ```
 
-## Expected results
+Record selected services, external inputs, state owner and predicted packet path. Compare [architecture](../architecture/overview.md) and [objective mapping](../reference/az-700-alignment.md).
 
-- Firewall exists and is in Succeeded state.
-- Firewall policy exists with a rule collection group.
-- vHub connections show `InternetSecurityEnabled` as true.
+## Step 2 — Document a future operation
 
-## Notes
+The [operator checklist](../../docs/operations/deployment-checklist.md) supplies the full input/state/cost sequence. This is a **future authorized operator reference**, not an offline check:
 
-- Replace `<prefix>` with `ctx.project`.
-- Traffic inspection behavior depends on routing intent, which is created by the firewall module.
-- Use the testing guide for connectivity checks: `../testing/lab-testing-guide.md`.
+```powershell
+$profile = 'vwan-secured'
+terraform plan -var-file=terraform.tfvars -var-file="profiles/$profile.tfvars.example" -out=".local/$profile.tfplan"
+terraform show ".local/$profile.tfplan"
+```
 
-## Related pages
+No plan or apply was run. Resolve actual tenant, subscription, permission, quota, region and dependencies before future use.
 
-- [Firewall and routing intent](../architecture/firewall-and-routing-intent.md)
-- [Security model](../architecture/security-model.md)
-- [Component checks](../testing/component-checks.md)
-- [Ports and protocols](../reference/ports-and-protocols.md)
+## Step 3 — Predict evidence
+
+Only after a separately authorized deployment, these outputs can feed the [diagnostic guide](../testing/lab-testing-guide.md):
+
+```powershell
+terraform output -raw firewall_private_ip
+terraform output -json firewall_public_ips
+```
+
+A future allowed/denied pair needs a source, hostname, selected route and matching Firewall log. Source review alone is configuration evidence. Record observations separately from predictions. If a client/service is absent, use **NOT RUN**, not PASS.
+
+## Troubleshooting
+
+If no log appears, first prove that traffic crossed the Firewall and diagnostics were enabled. DNS failure is not a policy-denial success. See [the symptom table](../testing/troubleshooting.md). Change one variable at a time.
+
+## Cost and cleanup
+
+Firewall and vHub have ongoing charges; add processing and optional log ingestion. Use [the cost worksheet](../reference/cost-model.md). Future cleanup must use the same root, state, context and profile as creation. Review the [destroy procedure](../../docs/operations/deployment-checklist.md#future-cleanup) and shared-resource ownership. Nothing was deployed by this update.
+
+## Completion artifact
+
+Submit an annotated input file, forward/return path prediction, blank evidence record with expected results, and cleanup ownership list. Never publish state, plans or secrets.
+
+[Scenario index](README.md) · [Book](../book.md)

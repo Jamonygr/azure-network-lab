@@ -1,40 +1,22 @@
-# Test matrix
+# Evidence matrix
 
-<p align="center">
-  <img src="../images/testing-test-matrix.svg" alt="Test matrix banner" width="1000" />
-</p>
+Current live status for every row is **NOT RUN**. Predictions below are not test results.
 
+| Area | Local evidence | Future live evidence | Insufficient by itself |
+|---|---|---|---|
+| Minimal | CIDR/flag/peering assertions | Intended resources and effective connectivity | VNet object exists |
+| vWAN | Connection/intent graph | Selected routes both directions | Hub resource is green |
+| Firewall | Rule targets and scopes | Exact allow/deny log matching a request | Timeout or no DNS answer |
+| VPN | Peer/connection inputs | IKE/IPsec, BGP, application response | Tunnel established |
+| Route Server | Peer and synthetic-route configuration | Both BGP sessions and accepted prefixes | Ping to a nonexistent advertised destination |
+| Private DNS | Zone/link/rule references | Client query chain and endpoint address | Query run from unrelated resolver |
+| Private endpoint | Public settings and connection target | Approved endpoint and authorized operation | Unauthenticated 403 |
+| App Gateway/LB | Backend/probe/listener wiring | Backend health and served response | Listener exists |
+| Front Door | Route/origin/policy | Approved private origin, healthy request | Profile creation |
+| Traffic Manager | Routing/endpoint definitions | DNS answer plus selected endpoint response | Valid HTTPS assumed on trafficmanager.net name |
+| Service endpoint policy | Policy scope and equal test roles | Allowed/denied destination pair | Different identities or permissions |
+| P2S | Client pool and Entra parameters | Real client sign-in, routes and traffic | Gateway deployment |
+| DDoS | Plan association and alerts | Configuration/metric evidence, without attack generation | Claim of simulated mitigation |
+| Monitoring | Targets, destination and retention | Arriving records with matching schema/time | Workspace alone |
 
-Use this matrix to pick tests based on enabled features. Each row lists the minimum toggle and a quick validation command.
-
-| Component | Toggle | Validation |
-|-----------|--------|------------|
-| vWAN | `deploy.vwan` | `az network vwan show -g rg-<prefix> -n vwan-<prefix>` |
-| vHub | `deploy.vwan` | `az network vhub show -g rg-<prefix> -n vhub-<prefix>` |
-| vHub connection | `deploy.vwan` | `az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix>` |
-| Firewall | `deploy.vhub_firewall` | `az network firewall show -g rg-<prefix> -n fw-vhub-<prefix>` |
-| VPN gateways | `deploy.vpn` | `az network vnet-gateway show -g rg-<prefix> -n vpngw-onprem-<prefix>` |
-| VPN connection | `deploy.vpn` | `az network vpn-connection show -g rg-<prefix> -n conn-onprem-to-vhub-<prefix>` |
-| Route Server | `deploy.route_server` | `az network routeserver show -g rg-<prefix> -n rs-<prefix>` |
-| BGP peers | `deploy.route_server` | `az network routeserver peering list -g rg-<prefix> --routeserver rs-<prefix>` |
-| DNS zones | `deploy.private_dns_zones` | `az network private-dns zone list -g rg-<prefix>` |
-| DNS resolver | `deploy.dns_resolver` | `az resource list -g rg-<prefix> --resource-type Microsoft.Network/dnsResolvers` |
-| Private endpoint | `deploy.private_endpoint` | `az network private-endpoint list -g rg-<prefix>` |
-| ILB | `deploy.load_balancer` | `Test-NetConnection <lb_ip> -Port 80` |
-| NAT gateway | `deploy.nat_gateway` | `Invoke-RestMethod https://api.ipify.org` (from VM) |
-| App Gateway | `deploy.application_gateway` | `curl http://<appgw_ip>` (after backend config) |
-| Bastion | `deploy.bastion` | Bastion DNS name in outputs |
-
-## Notes
-
-- Replace `<prefix>` with `ctx.project`.
-- Replace placeholders with outputs from `terraform output`.
-- Some tests require running commands inside a VM via RunCommand.
-- Use `testing/troubleshooting.md` for common failure patterns.
-
-## Related pages
-
-- [Lab testing guide](lab-testing-guide.md)
-- [Lab scenarios](../scenarios/README.md)
-- [Feature matrix](../reference/feature-matrix.md)
-- [Outputs reference](../reference/outputs.md)
+Each result should be PASS, FAIL, SKIP (with reason), or NOT RUN. Avoid substituting mocked output for a live screenshot or using an absent external client as a pass. [Evidence contract](lab-testing-guide.md)

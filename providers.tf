@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.9.0"
+  required_version = "= 1.16.4"
 
   required_providers {
     azurerm = {
@@ -16,11 +16,11 @@ terraform {
 provider "azurerm" {
   features {
     resource_group {
-      prevent_deletion_if_contains_resources = false
+      prevent_deletion_if_contains_resources = true
     }
     virtual_machine {
       delete_os_disk_on_deletion     = true
-      skip_shutdown_and_force_delete = true
+      skip_shutdown_and_force_delete = false
     }
   }
 

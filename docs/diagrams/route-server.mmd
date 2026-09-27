@@ -1,0 +1,20 @@
+flowchart TB
+accTitle: Route Server control plane and NVA data path
+accDescr: Route Server exchanges BGP routes with an RRAS NVA. Application traffic goes through the NVA, never through Route Server. Spoke1 has no Virtual WAN hub connection. A 10.100.0.0/16 advertisement is synthetic and has no deployed destination.
+subgraph S1["Spoke1 — 10.1.0.0/16 • no vWAN connection"]
+direction LR
+W["Workload subnet<br/>10.1.1.0/24<br/>Client VM not enabled by profile"]:::network
+N["RRAS NVA<br/>10.1.8.10<br/>Teaching ASN 65501"]:::network
+R["Route Server<br/>RouteServerSubnet<br/>Two BGP instance addresses"]:::control
+W <-->|"Application packets + return"| N
+N <-.->|"BGP route exchange"| R
+R -.->|"Programs learned routes"| W
+end
+S2["Spoke2<br/>10.2.0.0/16"]:::network <-->|"Root peering flags define behavior"| W
+N -.-> ADV["Synthetic advertisement<br/>10.100.0.0/16<br/>No deployed remote workload"]:::note
+W --> NAT["Profile NAT Gateways<br/>Required explicit VM egress"]:::control --> WEB["Internet dependencies"]:::outside
+N ~~~ CHECK["Guest configuration and BGP sessions<br/>must be verified separately<br/>Azure live status: NOT RUN"]:::note
+classDef network fill:#e8f1fa,stroke:#265f8b,color:#10283b;
+classDef control fill:#e9f3ef,stroke:#397761,color:#153d2d;
+classDef note fill:#fff3dc,stroke:#99751c,color:#45340c;
+classDef outside fill:#f6e9e8,stroke:#9c5a50,color:#512e29;

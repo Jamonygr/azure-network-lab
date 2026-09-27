@@ -1,0 +1,25 @@
+$ErrorActionPreference = 'Stop'
+$directory = Join-Path $env:ProgramData 'AzureNetworkLab'
+New-Item -ItemType Directory -Path $directory -Force | Out-Null
+$configurationPath = Join-Path $directory 'rras.json'
+$configurePath = Join-Path $directory 'ConfigureRRAS.ps1'
+$configurationJson = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${configuration_base64}'))
+$configureScript = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${configure_script_base64}'))
+Set-Content -LiteralPath $configurationPath -Value $configurationJson -Encoding UTF8
+Set-Content -LiteralPath $configurePath -Value $configureScript -Encoding UTF8
+$featureResult = Install-WindowsFeature -Name RemoteAccess,Routing,RSAT-RemoteAccess -IncludeManagementTools
+if (-not $featureResult.Success) { throw 'RRAS feature installation failed.' }
+$arguments = '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' + $configurePath + '" -ConfigurationPath "' + $configurationPath + '"'
+$action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $arguments
+$trigger = New-ScheduledTaskTrigger -AtStartup
+$principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+Register-ScheduledTask -TaskName 'ConfigureRRAS' -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null
+if ([string]$featureResult.RestartNeeded -eq 'Yes') {
+    Set-Content -LiteralPath (Join-Path $directory 'rras-status.log') -Value 'PENDING: restart required; RRAS/BGP readiness has not been verified.'
+    & shutdown.exe /r /t 90 /c 'Complete Azure network lab RRAS feature installation'
+    if ($LASTEXITCODE -ne 0) { throw 'Could not schedule the required RRAS restart.' }
+    Write-Output 'RRAS features installed; startup configuration is pending a restart.'
+} else {
+    & $configurePath -ConfigurationPath $configurationPath
+}

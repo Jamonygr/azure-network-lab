@@ -1,0 +1,43 @@
+#cloud-config
+package_update: false
+package_upgrade: false
+write_files:
+  - path: /opt/network-lab/probe.sh
+    permissions: '0700'
+    encoding: b64
+    content: ${probe_script_b64}
+  - path: /opt/network-lab/retry.sh
+    permissions: '0700'
+    content: |
+      #!/bin/sh
+      attempt=1
+      while [ "$attempt" -le 30 ]; do
+        echo "NETWORK_LAB_PROBE attempt=$attempt"
+        if /bin/sh /opt/network-lab/probe.sh ${probe_arguments}; then
+          echo "NETWORK_LAB_PROBE PASSED"
+          exit 0
+        fi
+        echo "NETWORK_LAB_PROBE INCOMPLETE waiting for provisioning, DNS or RBAC"
+        attempt=$((attempt + 1))
+        sleep 30
+      done
+      echo "NETWORK_LAB_PROBE INCOMPLETE retry budget exhausted; investigate configuration"
+      exit 1
+  - path: /etc/systemd/system/network-lab-probe.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Bounded private networking acceptance probe
+      After=network-online.target
+      Wants=network-online.target
+      [Service]
+      Type=oneshot
+      ExecStart=/bin/sh /opt/network-lab/retry.sh
+      TimeoutStartSec=2400
+      StandardOutput=journal+console
+      StandardError=journal+console
+      [Install]
+      WantedBy=multi-user.target
+runcmd:
+  - systemctl daemon-reload
+  - systemctl enable --now --no-block network-lab-probe.service

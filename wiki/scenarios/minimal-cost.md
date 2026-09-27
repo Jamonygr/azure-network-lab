@@ -1,67 +1,57 @@
-# Scenario: Minimal cost lab
+# Minimal address and security footprint
 
-<p align="center">
-  <img src="../images/scenarios-minimal-cost.svg" alt="Scenario: Minimal cost lab banner" width="1000" />
-</p>
+**Mode:** configuration exercise. **Azure deployment and live verification: NOT RUN.**
 
+## Objectives and configuration
 
-## Goal
+Address spaces, service subnets, NSGs and cost boundaries.
 
-Deploy a lightweight lab profile for basic vWAN and spoke connectivity while minimizing paid services.
+Use [profiles/minimal.tfvars.example](../../profiles/minimal.tfvars.example) with the main root. Three VNets and their service-subnet reservations remain. Two directed peerings connect Spoke1 and Spoke2; the branch stays isolated. No optional paid service is selected. No VM password is needed.
 
-## Suggested toggles
+## Step 1 — Review without Azure
 
-```hcl
-deploy = {
-  vwan          = true
-  vhub_firewall = false
-  vpn           = false
-  route_server  = false
+From the repository root:
 
-  dns_resolver      = false
-  private_dns_zones = false
-  bastion           = false
-
-  application_gateway = false
-  load_balancer       = false
-  nat_gateway         = false
-
-  private_endpoint = false
-
-  spoke1_vms = true
-  spoke2_vms = true
-  onprem_vms = false
-  nvas       = false
-}
+```powershell
+Get-Content profiles/minimal.tfvars.example
+Get-Content locals.tf
 ```
 
-## Steps
+Record selected services, external inputs, state owner and predicted packet path. Compare [architecture](../architecture/overview.md) and [objective mapping](../reference/az-700-alignment.md).
 
-1. Apply the lab and capture outputs.
-2. Validate vWAN, vHub, and vHub connections.
-3. Test basic connectivity between spokes.
+## Step 2 — Document a future operation
 
-## Commands
+The [operator checklist](../../docs/operations/deployment-checklist.md) supplies the full input/state/cost sequence. This is a **future authorized operator reference**, not an offline check:
 
-```bash
-az network vwan show -g rg-<prefix> -n vwan-<prefix> -o table
-az network vhub show -g rg-<prefix> -n vhub-<prefix> -o table
-az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix> -o table
+```powershell
+$profile = 'minimal'
+terraform plan -var-file=terraform.tfvars -var-file="profiles/$profile.tfvars.example" -out=".local/$profile.tfplan"
+terraform show ".local/$profile.tfplan"
 ```
 
-## Expected results
+No plan or apply was run. Resolve actual tenant, subscription, permission, quota, region and dependencies before future use.
 
-- vWAN and vHub are in Succeeded state.
-- Spoke1 and Spoke2 are connected to the hub.
+## Step 3 — Predict evidence
 
-## Notes
+Only after a separately authorized deployment, these outputs can feed the [diagnostic guide](../testing/lab-testing-guide.md):
 
-- This profile skips paid services like Firewall, VPN, Route Server, DNS resolver, and App Gateway.
-- Add optional services as needed for deeper tests.
+```powershell
+terraform output -json subnet_address_plan
+terraform output -json enabled_services
+```
 
-## Related pages
+Expect three nonoverlapping allocations, bidirectional spoke peering and no optional paid services. A subnet's presence does not enable its named service. Record observations separately from predictions. If a client/service is absent, use **NOT RUN**, not PASS.
 
-- [Cost model](../reference/cost-model.md)
-- [Defaults and SKUs](../reference/defaults-and-skus.md)
-- [Feature matrix](../reference/feature-matrix.md)
-- [Limitations and tradeoffs](../architecture/limitations-and-tradeoffs.md)
+## Troubleshooting
+
+Correct overlapping parent CIDRs; do not bypass validation. No Internet egress service or branch transit is promised. See [the symptom table](../testing/troubleshooting.md). Change one variable at a time.
+
+## Cost and cleanup
+
+Base networking only; optional services change cost. Use [the cost worksheet](../reference/cost-model.md). Future cleanup must use the same root, state, context and profile as creation. Review the [destroy procedure](../../docs/operations/deployment-checklist.md#future-cleanup) and shared-resource ownership. Nothing was deployed by this update.
+
+## Completion artifact
+
+Submit an annotated input file, forward/return path prediction, blank evidence record with expected results, and cleanup ownership list. Never publish state, plans or secrets.
+
+[Scenario index](README.md) · [Book](../book.md)

@@ -44,3 +44,19 @@ resource "azurerm_network_interface_backend_address_pool_association" "this" {
   ip_configuration_name   = "internal"
   backend_address_pool_id = var.lb_backend_pool_id
 }
+
+# Supported guest agents download extension packages via HostGAPlugin (168.63.129.16,
+# TCP 80/32526). The bootstrap payload is inline and never fetches remote scripts.
+resource "azurerm_virtual_machine_extension" "web" {
+  count                      = var.install_web_server ? 1 : 0
+  name                       = "bootstrap-web"
+  virtual_machine_id         = azurerm_windows_virtual_machine.this.id
+  publisher                  = "Microsoft.Compute"
+  type                       = "CustomScriptExtension"
+  type_handler_version       = "1.10"
+  auto_upgrade_minor_version = true
+  settings = jsonencode({
+    commandToExecute = "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"& ([ScriptBlock]::Create([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${filebase64("${path.module}/bootstrap-web.ps1")}'))))\""
+  })
+  tags = var.ctx.tags
+}

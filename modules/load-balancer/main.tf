@@ -23,9 +23,9 @@ resource "azurerm_lb_probe" "this" {
   loadbalancer_id     = azurerm_lb.this.id
   protocol            = "Http"
   port                = 80
-  request_path        = "/"
+  request_path        = "/health.html"
   interval_in_seconds = 5
-  number_of_probes    = 2
+  probe_threshold     = 2
 }
 
 resource "azurerm_lb_rule" "http" {

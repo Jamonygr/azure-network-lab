@@ -1,83 +1,28 @@
-# CLI cheat sheet
+# Command boundaries
 
-<p align="center">
-  <img src="../images/reference-cli-cheatsheet.svg" alt="CLI cheat sheet banner" width="1000" />
-</p>
+## Local source checks
 
-
-Quick commands for common lab operations. Replace `<prefix>` with your `ctx.project` value.
-
-## Terraform
-
-```bash
-terraform init
-terraform plan -out=tfplan
-terraform apply tfplan
-terraform output
+```powershell
+pwsh ./scripts/Test-Offline.ps1
+pwsh ./scripts/Update-TerraformReference.ps1
 ```
 
-## Core networking
+The reference generator changes generated Markdown; review the diff. Read runner output for PASS, FAIL or SKIP rather than assuming every optional tool exists.
 
-```bash
-az network vwan show -g rg-<prefix> -n vwan-<prefix> -o table
-az network vhub show -g rg-<prefix> -n vhub-<prefix> -o table
-az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix> -o table
-```
+Direct Terraform source checks use `fmt -check`, `init -backend=false` and `validate`. Initialization can download providers. Only supplied mocked tests belong in offline runs; an ordinary plan can access Azure.
 
-## Firewall
+## Future operator references only
 
-```bash
-az network firewall show -g rg-<prefix> -n fw-vhub-<prefix> -o table
-az network firewall policy show -g rg-<prefix> -n fwpol-<prefix> -o table
-```
+See the [full checklist](../../docs/operations/deployment-checklist.md) before these categories:
 
-## Route Server
+| Command | What it can do |
+|---|---|
+| `terraform plan` | Authenticate, refresh, query data sources and write sensitive plan data |
+| `terraform show` | Display saved plan/state information, possibly sensitive |
+| `terraform apply` | Create/change/delete real Azure resources |
+| `terraform plan -destroy` | Read Azure and calculate removals |
+| `terraform output` | Read local/backend state, not independently test traffic |
+| `az network ... show/list` | Query actual subscription resources when authenticated |
+| `Resolve-DnsName`, `Test-NetConnection` | Generate real network queries/traffic |
 
-```bash
-az network routeserver show -g rg-<prefix> -n rs-<prefix> -o table
-az network routeserver peering list -g rg-<prefix> --routeserver rs-<prefix> -o table
-```
-
-## VPN
-
-```bash
-az network vhub gateway show -g rg-<prefix> -n vpngw-vhub-<prefix> -o table
-az network vnet-gateway show -g rg-<prefix> -n vpngw-onprem-<prefix> -o table
-az network vpn-connection show -g rg-<prefix> -n conn-onprem-to-vhub-<prefix> -o table
-```
-
-## DNS and private endpoint
-
-```bash
-az network private-dns zone list -g rg-<prefix> -o table
-az network private-endpoint list -g rg-<prefix> -o table
-```
-
-## VNet peerings and NSGs
-
-```bash
-az network vnet peering list -g rg-<prefix> --vnet-name vnet-spoke1-<prefix> -o table
-az network nsg rule list -g rg-<prefix> --nsg-name nsg-spoke1-<prefix> -o table
-```
-
-## VM checks
-
-```bash
-az vm list -g rg-<prefix> -o table
-az vm run-command invoke -g rg-<prefix> -n vm-spoke1-1 \
-  --command-id RunPowerShellScript \
-  --scripts "Get-NetIPAddress"
-```
-
-## Cleanup
-
-```bash
-terraform destroy -auto-approve
-```
-
-## Related pages
-
-- [Troubleshooting](../testing/troubleshooting.md)
-- [Component checks](../testing/component-checks.md)
-- [Outputs reference](outputs.md)
-- [Variables reference](variables.md)
+No cloud command above was executed for this update. Never paste placeholders blindly into an authenticated terminal. Use [evidence templates](../testing/lab-testing-guide.md).

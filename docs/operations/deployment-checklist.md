@@ -1,51 +1,67 @@
-# Deployment Checklist
+# Future operator checklist
 
-Use this checklist before and after every lab deployment. It is designed to keep cost, access, routing, and cleanup decisions visible.
+**Reference procedure only. No Azure login, plan, deployment, resource query or lab execution was performed for this update.** Complete local source review through [Test-Offline.ps1](../../scripts/Test-Offline.ps1); the commands below are deliberately live-capable.
 
-## Before You Deploy
+## 1. Select scope and ownership
 
-- Confirm the active Azure subscription and tenant.
-- Review `terraform.tfvars` for location, tags, feature flags, and VM size.
-- Set `deploy.vpn`, `deploy.application_gateway`, and `deploy.bastion` only when you need those scenarios.
-- Confirm `admin_password` and `vpn_shared_key` are unique for this deployment.
-- Estimate the monthly cost using `wiki/reference/cost-model.md`.
+Choose one main-root profile or one independent example. Use a separate directory/state for concurrent scenarios. Identify the owner of every created and reused resource, including Network Watcher child objects. Read [cost planning](../../wiki/reference/cost-model.md) and [state guidance](../../wiki/reference/state-and-secrets.md).
 
-## Validate Locally
+Confirm the correct tenant/subscription, region/SKU availability, quota and permissions. Ordinary Contributor does not grant permission to assign RBAC roles; examples that create assignments require appropriate authorization at their actual scopes. No effective-permission or quota check is claimed by offline tests.
 
-```bash
-terraform fmt -recursive
-terraform init
-terraform validate
-terraform plan -out=tfplan
+## 2. Prepare the main-root inputs
+
+This step is for a future authorized operator in a selected root directory:
+
+```powershell
+Copy-Item -LiteralPath terraform.tfvars.example -Destination terraform.tfvars
+New-Item -ItemType Directory -Path .local -Force | Out-Null
+$profile = 'minimal'
 ```
 
-Review the plan for:
+Edit the local template's real subscription, project, region and tags. Never copy private values into the committed template. Profile files are `profiles/<name>.tfvars.example` and are passed explicitly; they do not isolate state.
 
-- Expected resource count and names.
-- Cost-bearing services that match the selected scenario.
-- No accidental public access on storage.
-- Expected vHub connection behavior when Route Server is enabled.
+If selected VMs or VPN require credentials, provide the respective `TF_VAR_admin_password` or `TF_VAR_vpn_shared_key` from an approved secret source. Do not hard-code them in a command transcript. Minimal needs neither. Record any existing certificate identity, DNS target or Network Watcher dependency.
 
-## After Apply
+The final deploy object replaces the earlier one; files do not recursively merge it. A profile switch against existing state can remove resources.
 
-```bash
-terraform output
-az group show -g rg-<prefix> -o table
-az network vwan show -g rg-<prefix> -n vwan-<prefix> -o table
+## 3. Confirm the account and inspect a saved plan
+
+**Live-capable future commands, NOT RUN:**
+
+```powershell
+az account show --query '{subscription:id,tenant:tenantId,name:name}' --output table
+terraform version
+terraform init -input=false -lockfile=readonly
+terraform plan -var-file=terraform.tfvars -var-file="profiles/$profile.tfvars.example" -out=".local/$profile.tfplan"
+terraform show ".local/$profile.tfplan"
 ```
 
-Run the scenario-specific checks in `wiki/testing/lab-testing-guide.md`.
+Confirm exact root/state/profile/subscription, required versions, expected resource changes, cost-bearing services, address ranges, public entries, service dependencies and all replacements/removals. Preserve prior state before a migration. A saved plan may contain secrets; keep it ignored and protected.
 
-## Before Sharing Results
+If any input/source changes after review, create and inspect a new plan. A separately authorized operator can then apply the exact reviewed file:
 
-- Redact subscription IDs, public IPs, usernames, and generated resource IDs.
-- Do not share Terraform state or plan files.
-- Include the selected `deploy` profile when asking for help.
-
-## Cleanup
-
-```bash
-terraform destroy
+```powershell
+terraform apply ".local/$profile.tfplan"
 ```
 
-After destroy, confirm no orphaned public IPs, disks, gateways, or route tables remain in the resource group.
+This documentation is not an instruction for the repository maintainer to deploy anything.
+
+## 4. Collect evidence
+
+Use the selected [scenario](../../wiki/scenarios/README.md) and [evidence contract](../../wiki/testing/lab-testing-guide.md). Separate configuration, DNS, route, policy, identity and application outcomes. Unsupported clients/dependencies remain NOT RUN. Never mark a mocked result as Azure evidence.
+
+## Future cleanup
+
+In the same root/state, keep the exact inputs used for creation. First inventory externally shared resources and lab-owned children. Then a future authorized operator can review removals:
+
+```powershell
+terraform plan -destroy -var-file=terraform.tfvars -var-file="profiles/$profile.tfvars.example" -out=".local/destroy-$profile.tfplan"
+terraform show ".local/destroy-$profile.tfplan"
+# Only after checking every removal and ownership:
+terraform apply ".local/destroy-$profile.tfplan"
+terraform state list
+```
+
+An empty state is necessary but not enough to prove no residual charges. Verify owned resource groups and recorded child IDs. Flow logs/Connection Monitor can be under a shared Network Watcher group; delete only the lab-owned children through this state, leaving the shared watcher intact. Independent examples require cleanup in their own roots; the endpoint-policy example owns two groups.
+
+Do not use broad resource-group deletion to compensate for lost state. Review public IPs, disks, endpoints, logs/retention and soft-deleted service artifacts as applicable. Preserve protected evidence/backup according to the owner's retention decision. There are no resources from this update to clean up.
