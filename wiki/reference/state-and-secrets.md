@@ -1,51 +1,24 @@
-# State and secrets
+# State, isolation and secrets
 
-<p align="center">
-  <img src="../images/reference-state-and-secrets.svg" alt="State and secrets banner" width="1000" />
-</p>
+The main profiles share a root and do not create independent state. Use separate working directories/checkouts and distinct state for concurrent scenarios. Each independent example already has its own root; never copy another root's state into it.
 
+Local state is operational data. It may contain VM passwords, PSKs and other sensitive values even when a variable is marked `sensitive`. Saved plans and crash/debug output can also contain secrets. Keep real tfvars, state, plans, evidence and credentials ignored and protected. Do not paste them into documentation.
 
-This lab uses local state by default. For shared or long-lived labs, move state to Azure Storage and treat credentials as secrets.
+For future collaboration, design a separate encrypted, locked and access-controlled backend; no shared backend is silently provisioned by this repository. Plan its bootstrap, identity, network reachability, backup and deletion order first.
 
-## Local state (default)
+## Future local backup procedure
 
-- State files are stored next to the repo.
-- Keep them out of git using `.gitignore`.
-- Use `terraform show` only on trusted machines.
+Stop concurrent Terraform operations. Identify the exact root, state and context. In that root, make an ignored timestamped backup before a migration:
 
-## Remote state (recommended)
-
-1. Create a storage account and container for `tfstate`.
-2. Enable blob versioning and soft delete.
-3. Configure a backend in Terraform or use `-backend-config`.
-
-Example backend config:
-
-```hcl
-terraform {
-  backend "azurerm" {
-    resource_group_name  = "rg-tfstate"
-    storage_account_name = "sttfstate<suffix>"
-    container_name       = "tfstate"
-    key                  = "az700-lab.tfstate"
-  }
-}
+```powershell
+$backup = Join-Path '.local/backups' ([DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ'))
+New-Item -ItemType Directory -Path $backup -Force | Out-Null
+Copy-Item -LiteralPath 'terraform.tfstate' -Destination (Join-Path $backup 'terraform.tfstate')
+Get-Item -LiteralPath (Join-Path $backup 'terraform.tfstate') | Select-Object Name,Length,LastWriteTimeUtc
 ```
 
-## Secret handling
+This applies only to a root actually using that local state filename. Never assume it backs up a remote backend. Protect/encrypt the backup and use approved external retention if required.
 
-- Do not commit `terraform.tfvars` if it contains passwords or keys.
-- Use environment variables (`TF_VAR_admin_password`) in CI or shared environments.
-- Rotate VPN keys after lab usage.
+For recovery, verify root, subscription, resource ownership and state lineage before restoring an exact named backup. Do not blindly use state push or force-unlock. A backup is not permission to overwrite a newer state.
 
-## Recommended hygiene
-
-- Store admin credentials in a password manager or Key Vault.
-- Use a dedicated subscription for labs to limit blast radius.
-
-## Related pages
-
-- [Variables reference](variables.md)
-- [Hardening checklist](hardening.md)
-- [Current config (lab profile)](current-config.md)
-- [Outputs reference](outputs.md)
+Existing root `moved.tf` addresses compatibility changes. Review migrations with the prior state preserved; cloud-aware migration plans were NOT RUN for this update.

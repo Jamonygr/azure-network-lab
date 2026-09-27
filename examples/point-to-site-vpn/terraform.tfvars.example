@@ -1,0 +1,11 @@
+# Copy to ignored terraform.tfvars; replace placeholders and review cost.
+lab_id = "demo01"
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id = "00000000-0000-0000-0000-000000000000"
+location = "westeurope"
+enable_paid_features = false
+ssh_public_key = "REPLACE_WITH_YOUR_OPENSSH_RSA_PUBLIC_KEY"
+vpn_aad_audience = "00000000-0000-0000-0000-000000000000"
+vpn_aad_tenant_url = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000"
+vpn_aad_issuer_url = "https://sts.windows.net/00000000-0000-0000-0000-000000000000/"
+vpn_client_address_pool = "172.28.10.0/24"

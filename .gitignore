@@ -2,10 +2,12 @@
 *.tfstate
 *.tfstate.*
 *.tfstate.backup
+.terraform.tfstate.lock.info
 .terraform/
-.terraform.lock.hcl
 tfplan
 *.tfplan
+*.tfplan.*
+*.plan
 crash.log
 crash.*.log
 override.tf
@@ -15,8 +17,11 @@ override.tf.json
 
 # Sensitive files - NEVER commit these
 terraform.tfvars
+*.tfvars.json
 *.auto.tfvars
+*.auto.tfvars.json
 secrets.tf
+secrets.tfvars
 
 # IDE
 .idea/
@@ -35,3 +40,18 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.temp
+
+# Local validation evidence and tooling
+.local/
+node_modules/
+*.tfvars
+*.pem
+*.pfx
+*.key
+
+__pycache__/
+*.pyc
+
+.env
+.env.*
+*.p12

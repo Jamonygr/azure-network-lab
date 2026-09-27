@@ -1,56 +1,57 @@
-# Scenario: VPN and BGP
+# Hybrid VPN: Azure-hosted branch
 
-<p align="center">
-  <img src="../images/scenarios-vpn-bgp.svg" alt="Scenario: VPN and BGP banner" width="1000" />
-</p>
+**Mode:** configuration exercise. **Azure deployment and live verification: NOT RUN.**
 
+## Objectives and configuration
 
-## Goal
+Gateways, site, connections, BGP and external-device boundaries.
 
-Validate the site-to-site VPN and BGP adjacency between the on-prem simulation and the vHub VPN gateway.
+Use [profiles/hybrid-vpn.tfvars.example](../../profiles/hybrid-vpn.tfvars.example) with the main root. Compare hub/branch addresses, ASNs, peer IPs and prefixes. Supply the PSK privately. No client VMs are enabled by this profile.
 
-## Required toggles
+## Step 1 — Review without Azure
 
-- `deploy.vwan = true`
-- `deploy.vpn = true`
+From the repository root:
 
-## Optional toggles
-
-- `deploy.onprem_vms` if you want to test VM-to-VM connectivity.
-
-## Steps
-
-1. Apply the lab and capture outputs.
-2. Confirm vHub VPN gateway and on-prem VPN gateway exist.
-3. Verify the VPN connection status is Connected.
-4. Validate BGP peer status on the on-prem gateway.
-
-## Commands
-
-```bash
-az network vhub gateway show -g rg-<prefix> -n vpngw-vhub-<prefix> -o table
-az network vnet-gateway show -g rg-<prefix> -n vpngw-onprem-<prefix> -o table
-az network vpn-connection show -g rg-<prefix> -n conn-onprem-to-vhub-<prefix> -o table
-
-# BGP peer status (on-prem gateway)
-az network vnet-gateway list-bgp-peer-status -g rg-<prefix> -n vpngw-onprem-<prefix> -o table
+```powershell
+Get-Content profiles/hybrid-vpn.tfvars.example
+Get-Content modules/vpn-site/main.tf
 ```
 
-## Expected results
+Record selected services, external inputs, state owner and predicted packet path. Compare [architecture](../architecture/overview.md) and [objective mapping](../reference/az-700-alignment.md).
 
-- Gateways are in Succeeded state.
-- VPN connection shows Connected.
-- BGP peer status is Connected for ASN 65515.
+## Step 2 — Document a future operation
 
-## Notes
+The [operator checklist](../../docs/operations/deployment-checklist.md) supplies the full input/state/cost sequence. This is a **future authorized operator reference**, not an offline check:
 
-- Replace `<prefix>` with `ctx.project`.
-- Ensure `vpn_shared_key` is set in `terraform.tfvars`.
-- If BGP shows down, check IPsec status and shared key.
+```powershell
+$profile = 'hybrid-vpn'
+terraform plan -var-file=terraform.tfvars -var-file="profiles/$profile.tfvars.example" -out=".local/$profile.tfplan"
+terraform show ".local/$profile.tfplan"
+```
 
-## Related pages
+No plan or apply was run. Resolve actual tenant, subscription, permission, quota, region and dependencies before future use.
 
-- [VPN and hybrid](../architecture/vpn-and-hybrid.md)
-- [Routing and BGP](../architecture/routing-and-bgp.md)
-- [Route validation](../testing/route-validation.md)
-- [ASNs and IPs](../reference/asn-and-ips.md)
+## Step 3 — Predict evidence
+
+Only after a separately authorized deployment, these outputs can feed the [diagnostic guide](../testing/lab-testing-guide.md):
+
+```powershell
+terraform output -raw onprem_vpn_gateway_public_ip
+terraform output -raw vhub_id
+```
+
+Future evidence needs tunnel state, learned routes and a real authorized host request/response. This Azure-hosted branch does not test physical-device compatibility. Record observations separately from predictions. If a client/service is absent, use **NOT RUN**, not PASS.
+
+## Troubleshooting
+
+Separate PSK/policy, BGP peer, route advertisement and return-route faults. A green tunnel can carry no useful traffic. See [the symptom table](../testing/troubleshooting.md). Change one variable at a time.
+
+## Cost and cleanup
+
+Two gateway types, vHub and transfer continue billing while idle. Use [the cost worksheet](../reference/cost-model.md). Future cleanup must use the same root, state, context and profile as creation. Review the [destroy procedure](../../docs/operations/deployment-checklist.md#future-cleanup) and shared-resource ownership. Nothing was deployed by this update.
+
+## Completion artifact
+
+Submit an annotated input file, forward/return path prediction, blank evidence record with expected results, and cleanup ownership list. Never publish state, plans or secrets.
+
+[Scenario index](README.md) · [Book](../book.md)

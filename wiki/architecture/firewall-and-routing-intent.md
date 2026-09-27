@@ -1,59 +1,16 @@
 # Firewall and routing intent
 
-<p align="center">
-  <img src="../images/architecture-firewall-and-routing-intent.svg" alt="Firewall and routing intent banner" width="1000" />
-</p>
+The secured hub has three separate concerns: a Firewall instance, its policy/rule collections, and routing intent selecting that Firewall for relevant traffic. Review all three. The profile's configured FQDN allowlist is the starting point for outbound application rules; adding `*` would broaden its meaning.
 
+A useful review table is:
 
-When enabled, Azure Firewall runs inside the vHub (Secured Hub) and routing intent steers traffic through it. This page describes the default lab policy and what it means for traffic flow.
+| Flow | Required path | Policy question | Evidence |
+|---|---|---|---|
+| Spoke to Internet HTTPS | Spoke connection, hub, Firewall, destination | Does an application rule match the hostname and port? | Effective route plus application-rule log |
+| Spoke to spoke | Hub inspection path in this profile | Is the private destination/port allowed? | Forward and reverse route, network-rule log |
+| Branch to spoke | VPN, hub, destination VNet | Do route propagation and network rules agree? | Tunnel/BGP records and correlated flow |
+| Private endpoint | Route to endpoint IP | Does the actual route cross Firewall? | Selected route; endpoint and service evidence |
 
-## Firewall deployment
+Do not assume all traffic crosses the Firewall. More specific paths, direct peering, local subnet traffic, and profile selection can change the answer. A NAT Gateway does not override a route that already sends traffic to a virtual appliance.
 
-The firewall is created by `modules/vhub-firewall`:
-
-- SKU: AZFW_Hub (Standard).
-- Firewall policy: Standard with threat intelligence mode set to Alert.
-- DNS proxy enabled.
-
-## Firewall policy (lab defaults)
-
-Rule collection groups created by the module:
-
-### Network rule collection
-
-- Name: `AllowNetworkRules`
-- Allows TCP, UDP, and ICMP outbound from 10.0.0.0/8 and 192.168.0.0/16 to any destination.
-- Includes an explicit ICMP allow rule for all sources.
-
-### Application rule collection
-
-- Name: `AllowWebTraffic`
-- Allows HTTP and HTTPS from 10.0.0.0/8 and 192.168.0.0/16 to any FQDN.
-
-## Routing intent
-
-The module creates vHub routing intent with two policies:
-
-- `InternetTrafficPolicy` -> Azure Firewall
-- `PrivateTrafficPolicy` -> Azure Firewall
-
-This pushes both Internet and private traffic through the firewall when the hub is secured.
-
-## vHub connections and Internet security
-
-vHub connections are created with `internet_security_enabled = true`. This flag is required for secure hub inspection behavior when the firewall is present.
-
-## Validation commands
-
-```bash
-az network firewall show -g rg-<prefix> -n fw-vhub-<prefix> -o table
-az network firewall policy show -g rg-<prefix> -n fwpol-<prefix> -o table
-```
-
-## Related pages
-
-- Traffic flows: `architecture/traffic-flows.md`
-- Security model: `architecture/security-model.md`
-- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
-- [Ports and protocols](../reference/ports-and-protocols.md)
-
+Use [traffic paths](traffic-flows.md) and [secured hub exercise](../scenarios/secured-hub-firewall.md). All enforcement checks remain NOT RUN.

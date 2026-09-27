@@ -1,0 +1,24 @@
+flowchart TB
+accTitle: Application delivery services and security boundaries
+accDescr: Three comparison lanes show Traffic Manager DNS selection, regional Application Gateway WAF and internal Load Balancer, and global Front Door Premium with Private Link to App Service. These lanes are not implicitly chained into one deployment.
+subgraph TM["Independent Traffic Manager example — DNS decision"]
+direction LR
+T1["Client DNS query"] --> T2["Traffic Manager<br/>Routing method + health"]
+T2 -->|"Endpoint answer"| T1
+T1 ==>|"Direct application connection"| T3["Selected regional App Service"]
+end
+subgraph REG["Root application-delivery profile — regional services"]
+direction LR
+R1["HTTPS or HTTP client"] --> R2["App Gateway WAF_v2<br/>Listener • TLS • WAF • probe"]
+R2 --> R3["Configured backend<br/>Application service required"]
+R4["Private transport client"] --> R5["Standard internal LB<br/>Rule + probe"] --> R3
+end
+subgraph FD["Independent Front Door example — global HTTP service"]
+direction LR
+F1["Public web client"] --> F2["Front Door Premium<br/>TLS • WAF • cache • route"]
+F2 -->|"Private Link origin<br/>Approval required"| F3["App Service origin<br/>Public network restricted"]
+end
+N["Compare certificate names, health probes, policy and return path<br/>Front Door origin privacy does not make the frontend private<br/>Serving backends / approval / live requests: NOT RUN"]:::note
+FD ~~~ N
+classDef default fill:#e8f1fa,stroke:#265f8b,color:#10283b;
+classDef note fill:#fff3dc,stroke:#99751c,color:#45340c;

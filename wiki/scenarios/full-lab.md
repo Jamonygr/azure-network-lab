@@ -1,77 +1,57 @@
-# Scenario: Full lab build
+# Legacy combined topology review
 
-<p align="center">
-  <img src="../images/scenarios-full-lab.svg" alt="Scenario: Full lab build banner" width="1000" />
-</p>
+**Mode:** configuration exercise. **Azure deployment and live verification: NOT RUN.**
 
+## Objectives and configuration
 
-## Goal
+Dependency review, migration, exclusions and cumulative cost.
 
-Deploy all optional components to exercise the full range of AZ-700 topics in this repo.
+Use [profiles/legacy-combined.tfvars.example](../../profiles/legacy-combined.tfvars.example) with the main root. This explicit profile preserves the earlier broad teaching footprint. Route Server excludes Spoke1 from vHub; the full graph is not one centrally inspected topology.
 
-## Suggested toggles
+## Step 1 — Review without Azure
 
-```hcl
-deploy = {
-  vwan          = true
-  vhub_firewall = true
-  vpn           = true
-  route_server  = true
+From the repository root:
 
-  dns_resolver      = true
-  private_dns_zones = true
-  bastion           = true
-
-  application_gateway = true
-  load_balancer       = true
-  nat_gateway         = true
-
-  private_endpoint = true
-
-  spoke1_vms = true
-  spoke2_vms = true
-  onprem_vms = true
-  nvas       = true
-}
+```powershell
+Get-Content profiles/legacy-combined.tfvars.example
+Get-Content moved.tf
 ```
 
-## Steps
+Record selected services, external inputs, state owner and predicted packet path. Compare [architecture](../architecture/overview.md) and [objective mapping](../reference/az-700-alignment.md).
 
-1. Apply the lab and wait for all gateways to finish provisioning.
-2. Validate vWAN, vHub, firewall, and connections.
-3. Validate Route Server BGP and VPN connectivity.
-4. Validate DNS and private endpoints.
-5. Validate edge services (ILB, NAT, App Gateway, Bastion).
+## Step 2 — Document a future operation
 
-## Commands
+The [operator checklist](../../docs/operations/deployment-checklist.md) supplies the full input/state/cost sequence. This is a **future authorized operator reference**, not an offline check:
 
-```bash
-# Core
-az network vhub show -g rg-<prefix> -n vhub-<prefix> -o table
-az network firewall show -g rg-<prefix> -n fw-vhub-<prefix> -o table
-
-# Route Server
-az network routeserver show -g rg-<prefix> -n rs-<prefix> -o table
-
-# VPN
-az network vpn-connection show -g rg-<prefix> -n conn-onprem-to-vhub-<prefix> -o table
+```powershell
+$profile = 'legacy-combined'
+terraform plan -var-file=terraform.tfvars -var-file="profiles/$profile.tfvars.example" -out=".local/$profile.tfplan"
+terraform show ".local/$profile.tfplan"
 ```
 
-## Expected results
+No plan or apply was run. Resolve actual tenant, subscription, permission, quota, region and dependencies before future use.
 
-- All core resources are in Succeeded state.
-- Route Server peers show Connected.
-- VPN connection is Connected.
-- Private endpoint resolves to a private IP.
+## Step 3 — Predict evidence
 
-## Notes
+Only after a separately authorized deployment, these outputs can feed the [diagnostic guide](../testing/lab-testing-guide.md):
 
-- This profile is the highest cost and can take the longest to provision.
-- Spoke1 will not connect to the vHub when Route Server is enabled.
+```powershell
+terraform output -json enabled_services
+terraform output -json connected_hub_vnets
+```
 
-## Related pages
+Submit a dependency matrix identifying hub connections, peers, synthetic routes and external prerequisites. Existing-state migration needs separate review. Record observations separately from predictions. If a client/service is absent, use **NOT RUN**, not PASS.
 
-- [Current config (lab profile)](../reference/current-config.md)
-- [Lab testing guide](../testing/lab-testing-guide.md)
-- [Feature matrix](../reference/feature-matrix.md)
-- [Architecture overview](../architecture/overview.md)
+## Troubleshooting
+
+Switching to minimal can remove optional services. Preserve state and inspect moved blocks and all removals. See [the symptom table](../testing/troubleshooting.md). Change one variable at a time.
+
+## Cost and cleanup
+
+Multiple gateways, Firewall, resolver, Route Server, compute and delivery services can be expensive. Use [the cost worksheet](../reference/cost-model.md). Future cleanup must use the same root, state, context and profile as creation. Review the [destroy procedure](../../docs/operations/deployment-checklist.md#future-cleanup) and shared-resource ownership. Nothing was deployed by this update.
+
+## Completion artifact
+
+Submit an annotated input file, forward/return path prediction, blank evidence record with expected results, and cleanup ownership list. Never publish state, plans or secrets.
+
+[Scenario index](README.md) · [Book](../book.md)

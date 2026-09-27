@@ -1,64 +1,9 @@
-# VPN and hybrid
+# VPN and the branch simulation
 
-<p align="center">
-  <img src="../images/architecture-vpn-and-hybrid.svg" alt="VPN and hybrid banner" width="1000" />
-</p>
+The hybrid profile creates a vWAN-side VPN gateway and a VNet VPN gateway in the Azure-hosted branch. VPN site, connection and local-network-gateway resources connect those sides. Inspect BGP ASN, peer and advertised-prefix values together.
 
+The branch's location inside Azure is a deliberate teaching simplification. It cannot establish interoperability with a physical firewall, ISP path, NAT-T device, or an actual branch DNS service. These are [external VPN design tasks](../scenarios/design-exercises.md#external-vpn-and-client-design).
 
-This lab simulates an on-premises environment and connects it to the vHub using site-to-site VPN with BGP.
+For a future connection test, first establish IKE/IPsec status, then BGP state and route advertisements, then a transport request and return path. An established VPN alone is not end-to-end validation. Never include the PSK in an evidence file or command transcript.
 
-## Components
-
-- OnPrem VNet with a VPN gateway.
-- vHub VPN gateway in the Virtual Hub.
-- vWAN VPN site representing the on-prem device.
-- VPN connection between the on-prem gateway and vHub.
-
-## On-prem VPN gateway
-
-Created by `modules/vpn-gateway`:
-
-- Route-based VPN gateway.
-- SKU default in the root module: `VpnGw1`.
-- BGP enabled with ASN 65510.
-- Uses a static public IP.
-
-## vHub VPN gateway
-
-Created by `modules/vhub-vpn-gateway`:
-
-- Scale unit defaults to 1.
-- BGP ASN 65515.
-- Attached directly to the vHub.
-
-## VPN site and connection
-
-Created by `modules/vpn-site`:
-
-- vWAN VPN site uses the on-prem public IP and address space.
-- BGP settings use ASN 65510 and the on-prem BGP peering address.
-- vWAN VPN gateway connection uses the shared key and BGP.
-
-A separate `modules/vpn-connection` creates the on-prem gateway connection to the local network gateway representation of the vHub.
-
-## Dependencies
-
-- Requires `deploy.vwan = true` and `deploy.vpn = true`.
-- Requires `vpn_shared_key` in `terraform.tfvars`.
-
-## Validation commands
-
-```bash
-az network vhub gateway show -g rg-<prefix> -n vpngw-vhub-<prefix> -o table
-az network vnet-gateway show -g rg-<prefix> -n vpngw-onprem-<prefix> -o table
-az network vpn-connection show -g rg-<prefix> -n conn-onprem-to-vhub-<prefix> -o table
-```
-
-## Related pages
-
-- Routing overview: `architecture/routing-and-bgp.md`
-- VPN scenario: `scenarios/vpn-bgp.md`
-- [Route Server and NVA](route-server-and-nva.md)
-- [Scenario: VPN and BGP](../scenarios/vpn-bgp.md)
-- [Route validation](../testing/route-validation.md)
-
+The independent [P2S example](../../examples/point-to-site-vpn/README.md) uses a different state, gateway and client-address pool. It is not another toggle in the root. Current SKU and migration notes are in [defaults and lifecycle](../reference/defaults-and-skus.md).

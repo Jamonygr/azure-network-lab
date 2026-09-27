@@ -50,3 +50,42 @@ variable "ctx" {
     tags     = map(string)
   })
 }
+
+variable "backend_ip_addresses" {
+  description = "Actual IIS VM private addresses in this VNet."
+  type        = list(string)
+  validation {
+    condition     = length(var.backend_ip_addresses) > 0
+    error_message = "At least one web backend is required."
+  }
+}
+variable "autoscale_min" {
+  description = "Minimum v2 capacity; null selects fixed capacity."
+  type        = number
+  default     = 1
+}
+variable "autoscale_max" {
+  description = "Maximum v2 capacity."
+  type        = number
+  default     = 2
+}
+variable "waf_mode" {
+  description = "WAF policy mode."
+  type        = string
+  default     = "Prevention"
+}
+variable "certificate_secret_id" {
+  description = "Versionless existing Key Vault certificate secret URI; caller provides vault network access and RBAC."
+  type        = string
+  default     = null
+}
+variable "identity_ids" {
+  description = "Existing certificate-reader user-assigned identity."
+  type        = set(string)
+  default     = []
+}
+variable "host_name" {
+  description = "HTTPS hostname matching the referenced certificate."
+  type        = string
+  default     = null
+}

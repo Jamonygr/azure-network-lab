@@ -1,60 +1,57 @@
-# Scenario: Virtual WAN basics
+# Virtual WAN connection ownership
 
-<p align="center">
-  <img src="../images/scenarios-vwan-basics.svg" alt="Scenario: Virtual WAN basics banner" width="1000" />
-</p>
+**Mode:** configuration exercise. **Azure deployment and live verification: NOT RUN.**
 
+## Objectives and configuration
 
-## Goal
+Hub connections, propagation and service chaining.
 
-Validate that vWAN and vHub are deployed and that spokes connect as expected.
+Use [profiles/vwan-secured.tfvars.example](../../profiles/vwan-secured.tfvars.example) with the main root. This profile includes Firewall. Inspect vWAN connections and routing intent together; it is not a bare uninspected hub.
 
-## What you learn
+## Step 1 — Review without Azure
 
-- How vWAN and vHub appear in Azure.
-- How vHub connections are represented.
-- How Route Server impacts Spoke1 connectivity.
+From the repository root:
 
-## Required toggles
-
-- `deploy.vwan = true`
-- `deploy.vhub_firewall` can be true or false
-
-## Optional toggles
-
-- `deploy.route_server = false` if you want Spoke1 to connect to vHub.
-
-## Steps
-
-1. Apply the lab and capture outputs.
-2. Confirm vWAN and vHub exist.
-3. Verify vHub connections for spokes.
-
-## Commands
-
-```bash
-# vWAN and vHub
-az network vwan show -g rg-<prefix> -n vwan-<prefix> -o table
-az network vhub show -g rg-<prefix> -n vhub-<prefix> -o table
-
-# vHub connections
-az network vhub connection list -g rg-<prefix> --vhub-name vhub-<prefix> -o table
+```powershell
+Get-Content profiles/vwan-secured.tfvars.example
+Get-Content modules/vhub-connection/main.tf
 ```
 
-## Expected results
+Record selected services, external inputs, state owner and predicted packet path. Compare [architecture](../architecture/overview.md) and [objective mapping](../reference/az-700-alignment.md).
 
-- vWAN and vHub are in Succeeded state.
-- Spoke2 is connected to vHub when vWAN is enabled.
-- Spoke1 connects only when Route Server is disabled.
+## Step 2 — Document a future operation
 
-## Notes
+The [operator checklist](../../docs/operations/deployment-checklist.md) supplies the full input/state/cost sequence. This is a **future authorized operator reference**, not an offline check:
 
-- Replace `<prefix>` with `ctx.project`.
-- If the vHub connection is missing, confirm `deploy.vwan` and `deploy.route_server`.
+```powershell
+$profile = 'vwan-secured'
+terraform plan -var-file=terraform.tfvars -var-file="profiles/$profile.tfvars.example" -out=".local/$profile.tfplan"
+terraform show ".local/$profile.tfplan"
+```
 
-## Related pages
+No plan or apply was run. Resolve actual tenant, subscription, permission, quota, region and dependencies before future use.
 
-- [vWAN and vHub](../architecture/vwan-and-vhub.md)
-- [Network topology](../architecture/network-topology.md)
-- [Component checks](../testing/component-checks.md)
-- [Variables reference](../reference/variables.md)
+## Step 3 — Predict evidence
+
+Only after a separately authorized deployment, these outputs can feed the [diagnostic guide](../testing/lab-testing-guide.md):
+
+```powershell
+terraform output -json connected_hub_vnets
+terraform output -raw vhub_id
+```
+
+Spoke1 and Spoke2 are eligible hub connections while Route Server is disabled. Record selected routes in both directions. Record observations separately from predictions. If a client/service is absent, use **NOT RUN**, not PASS.
+
+## Troubleshooting
+
+A connection existing does not prove the selected path. Review propagation before changing policy. See [the symptom table](../testing/troubleshooting.md). Change one variable at a time.
+
+## Cost and cleanup
+
+vHub, Firewall, public IP and processing bill independently of guest VMs. Use [the cost worksheet](../reference/cost-model.md). Future cleanup must use the same root, state, context and profile as creation. Review the [destroy procedure](../../docs/operations/deployment-checklist.md#future-cleanup) and shared-resource ownership. Nothing was deployed by this update.
+
+## Completion artifact
+
+Submit an annotated input file, forward/return path prediction, blank evidence record with expected results, and cleanup ownership list. Never publish state, plans or secrets.
+
+[Scenario index](README.md) · [Book](../book.md)

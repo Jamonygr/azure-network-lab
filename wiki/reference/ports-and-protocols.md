@@ -1,33 +1,22 @@
-# Ports and protocols
+# Flow inventory
 
-<p align="center">
-  <img src="../images/reference-ports-and-protocols.svg" alt="Ports and protocols banner" width="1000" />
-</p>
+Review flows by purpose and selected path, not by copying an unrestricted port list.
 
+| Purpose | Typical lab protocol | Review boundary |
+|---|---|---|
+| DNS | UDP/TCP 53 | Resolver route, target server, zone/ruleset links |
+| Web teaching backends | TCP 80 | Scoped client/probe source and actual guest listener |
+| HTTPS | TCP 443 | Allowed hostname, certificate and proxy/origin boundary |
+| Windows administration | TCP 3389 | Scoped administration sources or Bastion, no Internet-wide rule |
+| BGP | TCP 179 | Peer endpoints, ASN and routing control plane |
+| VPN | IKE/IPsec/NAT-T as configured | Both peers, public path and negotiated policy |
+| Windows activation | TCP 1688 to configured KMS names | Explicit Firewall rule, not broad Internet permission |
+| Guest agent host channel | Azure platform address and documented ports | Platform dependency, not application egress proof |
 
-This page lists the common ports and protocols used in lab tests. Some traffic is handled by Azure-managed services and does not traverse VM NSGs.
+The root Firewall separately permits configured public HTTPS names, the Microsoft WindowsUpdate tag, KMS names, and optional AzureMonitor service-tag HTTPS when monitoring is enabled. Its private network rules are a different scope.
 
-## Lab traffic ports
+WindowsUpdate is a service-managed FQDN tag. Although configured with HTTPS/443 in a Firewall application rule, tag behavior can permit required HTTP endpoints. Do not describe every permitted flow as HTTPS-only. [FQDN tags](https://learn.microsoft.com/en-us/azure/firewall/fqdn-tags)
 
-| Protocol | Port | Used for | Where it applies |
-|----------|------|----------|-----------------|
-| TCP | 3389 | RDP to Windows VMs | NSG rules on workload subnets. |
-| TCP | 80 | HTTP testing for ILB/App Gateway | NSG rules on workload subnets. |
-| TCP | 443 | HTTPS testing | NSG rules on workload subnets. |
-| ICMP | n/a | Ping tests | NSG rules on workload subnets. |
-| TCP | 179 | BGP sessions | RRAS NVA to Route Server, VPN BGP. |
-| UDP | 53 | DNS queries | VM to DNS resolver or Azure DNS. |
-| UDP | 500/4500 | IKEv2 VPN | VPN gateways (Azure-managed). |
+Supported Windows guest agents use their platform channel; do not solve an extension problem by adding a broad Blob or GitHub allowlist without evidence. [Windows extension network access](https://learn.microsoft.com/en-us/azure/virtual-machines/extensions/features-windows#network-access)
 
-## Notes
-
-- BGP sessions are configured by the NVA and VPN gateways; NSG rules do not govern Route Server or VPN gateways.
-- If Bastion is enabled, management access flows through HTTPS (443) via the Azure Portal.
-- Adjust NSG rules carefully if you are validating firewall or routing behavior.
-
-## Related pages
-
-- [Firewall and routing intent](../architecture/firewall-and-routing-intent.md)
-- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
-- [Hardening checklist](hardening.md)
-- [Troubleshooting](../testing/troubleshooting.md)
+Live flow and guest-agent behavior remains NOT RUN.

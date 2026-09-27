@@ -1,61 +1,23 @@
-# DNS validation
+# Future DNS and private-access diagnosis
 
-<p align="center">
-  <img src="../images/testing-dns-validation.svg" alt="DNS validation banner" width="1000" />
-</p>
+Commands below generate queries or traffic and are **NOT RUN**. Run future tests from a known private-connected client using the intended resolver.
 
-
-Use these checks to confirm private DNS zones, VNet links, and private endpoint resolution.
-
-## DNS zones and links
-
-```bash
-az network private-dns zone list -g rg-<prefix> -o table
-az network private-dns link vnet list -g rg-<prefix> -z lab.internal -o table
-az network private-dns link vnet list -g rg-<prefix> -z privatelink.blob.core.windows.net -o table
+```powershell
+$storage = '<actual-storage-name>'
+Resolve-DnsName "$storage.blob.core.windows.net"
+Test-NetConnection "$storage.blob.core.windows.net" -Port 443
+# For the external-forwarding case, query the known inbound resolver:
+Resolve-DnsName "$storage.blob.core.windows.net" -Server '<resolver-inbound-private-ip>'
 ```
 
-Expected:
+Record the client resolver, full CNAME chain, final A record and endpoint IP. A public answer may indicate the wrong resolver, missing link/record, cache or forwarding configuration. A correct private answer followed by failure points to routing, service approval, policy or identity instead.
 
-- Both zones exist when `deploy.private_dns_zones = true`.
-- VNets are linked to both zones.
+The default empty forwarding rule map is intentional. Configure a real reachable server before expecting `branch.example.` to resolve. Never point a forwarding rule into a loop through the same resolver's inbound endpoint.
 
-## Private endpoint records
+A TCP success does not establish a Blob permission. A future authenticated operation can use an identity explicitly granted the necessary data role:
 
-```bash
-az network private-dns record-set a list \
-  -g rg-<prefix> -z privatelink.blob.core.windows.net -o table
+```powershell
+az storage container list --account-name '<actual-storage-name>' --auth-mode login --output table
 ```
 
-Expected:
-
-- An A record exists for the storage account private endpoint.
-
-## VM resolution test
-
-```bash
-az vm run-command invoke -g rg-<prefix> -n vm-spoke1-1 \
-  --command-id RunPowerShellScript \
-  --scripts "Resolve-DnsName <storage-account>.blob.core.windows.net"
-```
-
-Expected:
-
-- DNS resolves to a private IP in Spoke1.
-
-## DNS Private Resolver (optional)
-
-```bash
-az resource list -g rg-<prefix> --resource-type Microsoft.Network/dnsResolvers -o table
-```
-
-Expected:
-
-- DNS Private Resolver exists when `deploy.dns_resolver = true`.
-
-## Related pages
-
-- [DNS and Private Link](../architecture/dns-and-private-link.md)
-- [Scenario: Private endpoints and DNS](../scenarios/private-endpoints-dns.md)
-- [Ports and protocols](../reference/ports-and-protocols.md)
-- [Defaults and SKUs](../reference/defaults-and-skus.md)
+No data-plane role is implied by ordinary Contributor. For a public-access negative test, use the same authorized identity and distinguish an explicit network restriction from an authentication error or timeout. Do not open public access as a troubleshooting shortcut. [DNS paths](../architecture/dns-and-private-link.md)

@@ -1,223 +1,50 @@
-# Azure Network Lab - Book-Style Guide
+# A five-domain Azure networking course
 
-<p align="center">
-  <img src="images/book.svg" alt="Azure Network Lab - Book-Style Guide banner" width="1000" />
-</p>
+This book asks you to explain a network before operating one. For each chapter: draw the packet path, identify the required configuration, predict the failure mode, and specify evidence that could falsify your prediction.
 
+**No labs were deployed or executed for this repository update.** Every Azure command in this book and linked exercises is a future operator reference. You can complete address planning, configuration review, diagram reading, and synthetic evidence interpretation without an Azure account.
 
-This guide connects the Terraform code, network design, and testing steps into a single narrative. It is intentionally detailed, so you can treat it like a book or a wiki: read it end-to-end or jump to the section you need.
+## Chapter 1 — Core networks, 25–30%
 
-## What this lab is
+Read [core networking](domains/01-core.md), [address allocation](architecture/network-topology.md), and [DNS](architecture/dns-and-private-link.md). Inspect the minimal profile, then compare Route Server and vWAN as separate topologies. Explain why a DNS answer does not establish a route, why a route does not grant service authorization, and why a BGP session is not a data-path test.
 
-- A vWAN-centric lab that maps to AZ-700 topics.
-- A single-environment Terraform deployment that creates real Azure resources.
-- A safe place to explore hub-and-spoke, BGP, private DNS, and private endpoints.
+Exercises: [minimal footprint](scenarios/minimal-cost.md), [Route Server](scenarios/route-server-bgp.md), [private DNS](scenarios/private-endpoints-dns.md), and [AVNM](scenarios/independent-examples.md#avnm). Submit an address plan, a forward/return route table, and one resolved-name chain.
 
-## What this lab is not
+## Chapter 2 — Connectivity, 20–25%
 
-- A multi-environment platform or landing zone.
-- A production-ready, locked-down design.
-- A complete security posture or monitoring baseline.
+Read [connectivity](domains/02-connectivity.md). The [hybrid VPN](scenarios/vpn-bgp.md) represents a branch with another Azure VNet. It does not prove interoperability with an external VPN appliance. Pair the [P2S example](../examples/point-to-site-vpn/README.md) with the [ExpressRoute and external VPN design exercises](scenarios/design-exercises.md).
 
-## How to read this guide
+Submit failure-domain diagrams, the prefixes each side should advertise, an authentication decision record, and an explanation of where encryption begins and ends.
 
-- Part 1 - Orientation: repository layout, prerequisites, and workflow.
-- Part 2 - Terraform logic: inputs, locals, modules, and outputs.
-- Part 3 - Core network: vWAN, vHub, firewall, spokes, and peerings.
-- Part 4 - Hybrid and BGP: VPN gateways, Route Server, and RRAS NVA.
-- Part 5 - DNS and Private Link: private DNS zones and endpoints.
-- Part 6 - Edge and compute: App Gateway, LB, NAT, Bastion, VMs.
-- Part 7 - Operations: apply/destroy, state, costs, and change control.
-- Part 8 - Validation: scenarios and testing matrix.
-- AZ-700 mapping: see `reference/az-700-alignment.md`.
+## Chapter 3 — Application delivery, 15–20%
 
----
+Read [delivery](domains/03-delivery.md). Trace DNS selection, TCP flow, TLS termination, WAF evaluation, origin health, and the return path separately. Complete [edge services](scenarios/edge-services.md), [Traffic Manager](../examples/traffic-manager/README.md), and [Front Door](../examples/front-door-private-origin/README.md) configuration reviews.
 
-## Part 1 - Orientation
+Submit a service-selection table, an end-to-end certificate/name checklist, and expected behavior when an origin becomes unhealthy. A configured listener with no serving backend is not a working application.
 
-### Repository layout (top level)
+## Chapter 4 — Private access, 10–15%
 
-- `main.tf` - root orchestrator (single environment).
-- `locals.tf` - naming, tags, subnet maps, and feature flags.
-- `variables.tf` - input contract and validation.
-- `terraform.tfvars` - lab profile values.
-- `outputs.tf` - connection info and resource IDs.
-- `modules/` - reusable building blocks.
-- `wiki/` - documentation hub.
+Read [private access](domains/04-private-access.md). Contrast a consumer private endpoint with a service endpoint reaching the service's public endpoint. Review [Private Link service](../examples/private-link-service/README.md) and [endpoint policy](../examples/service-endpoint-policy/README.md). Separate DNS, routing, firewall policy, endpoint approval, and data-plane RBAC.
 
-### Required tools
+Submit positive and negative test pairs using the same authorized identity. An authorization failure alone does not prove a network restriction.
 
-- Terraform >= 1.5 (see `providers.tf`).
-- Azure CLI (for testing and validation).
-- An Azure subscription with Owner or Contributor permissions.
+## Chapter 5 — Network security, 15–20%
 
-### Cost awareness
+Read [security](domains/05-security.md), [monitoring](modules/monitoring.md), and [the evidence matrix](testing/test-matrix.md). Compare subnet NSGs, ASGs, AVNM administration, routed Firewall policy, WAF rules, and DDoS protection. Work through [Defender design interpretation](scenarios/design-exercises.md#defender-investigation).
 
-The lab includes paid services (vHub firewall, VPN gateway, Route Server, DNS resolver, App Gateway). Use the `deploy` toggles to control cost and destroy the environment when idle.
+Submit a least-privilege access table, synthetic flow-record interpretation, and a rollback procedure for one deliberate configuration fault. Never generate an attack to test a DDoS plan.
 
----
+## Instructor use
 
-## Part 2 - Terraform logic flow
+Choose one profile or example per session. Assign a reader to routing, one to DNS, and one to policy; have them independently predict the same connection before comparing conclusions. Grade evidence quality rather than screenshots of a green deployment badge.
 
-### Input -> locals -> modules -> outputs
+Use these exit questions for every exercise:
 
-1. Inputs: `terraform.tfvars` defines subscription ID, `ctx`, deploy flags, and credentials.
-2. Locals: `locals.tf` builds names, tags, subnet maps, and data-driven `for_each` maps.
-3. Modules: `main.tf` wires modules using the shared `ctx` object.
-4. Outputs: `outputs.tf` exposes key IDs and IPs for testing.
+1. What resource or input implements the objective?
+2. What required dependency is outside this configuration?
+3. Which record proves the request path and which proves the response?
+4. What other failure could produce the same symptom?
+5. What resources continue billing while the VM is stopped?
+6. Which exact root and state own cleanup?
 
-### Shared ctx object
-
-Every module accepts a `ctx` object:
-
-```hcl
-ctx = {
-  project  = "az700-lab"
-  location = "eastus2"
-  tags = {
-    Environment = "lab"
-    Project     = "az700"
-  }
-}
-```
-
-### Deploy flags
-
-The `deploy` object acts as a control panel. Each flag toggles a service on or off. Optional resources are created with `count` or filtered `for_each` maps, which avoids drift when you switch features.
-
----
-
-## Part 3 - Core network
-
-### Virtual WAN and Virtual Hub
-
-- vWAN is deployed with `type = Standard`.
-- The vHub uses a /23 address prefix (default `10.10.0.0/23`).
-- vHub connections are created for spokes when enabled.
-
-### Secured hub (Azure Firewall)
-
-When `deploy.vhub_firewall = true`, the lab creates:
-
-- Azure Firewall in the vHub (hub SKU).
-- A Firewall Policy with allow rules for lab traffic.
-- Routing Intent for both Internet and private traffic.
-
-### Spoke VNets
-
-- Spoke1: Route Server, DNS resolver, NVA, edge services.
-- Spoke2: Standard vHub-connected workload VNet.
-- OnPrem: Simulated on-premises VNet with VPN gateway and optional NVA.
-
-### VNet peering and limitations
-
-- Spoke1 and Spoke2 peer directly when Route Server is enabled.
-- Spoke1 does not connect to vHub when Route Server is enabled (Azure limitation).
-
----
-
-## Part 4 - Hybrid and BGP
-
-### VPN (on-prem to vHub)
-
-- vHub VPN Gateway uses ASN 65515.
-- OnPrem VPN Gateway uses ASN 65510 and connects via IPsec/IKEv2.
-- The VPN site and gateway connection are built in vWAN.
-
-### Route Server + RRAS NVA
-
-- Azure Route Server is deployed in Spoke1 with branch-to-branch enabled.
-- A Windows RRAS NVA in Spoke1 peers with Route Server (ASN 65501).
-- BGP configuration is applied via a Custom Script extension.
-
----
-
-## Part 5 - DNS and Private Link
-
-### Private DNS zones
-
-- `lab.internal` with auto-registration for spoke VNets.
-- `privatelink.blob.core.windows.net` for storage private endpoints.
-
-### DNS Private Resolver
-
-Inbound and outbound endpoints live in Spoke1 subnets with DNS resolver delegation. Use this to test private resolution from spokes.
-
-### Private Endpoint
-
-Storage accounts are created with public access disabled. A private endpoint in Spoke1 links to the `privatelink.blob.core.windows.net` zone.
-
----
-
-## Part 6 - Edge and compute
-
-### Windows workload VMs
-
-- Windows Server 2022 Core (small disk).
-- Deployed across spokes and on-prem for connectivity tests.
-
-### NVA VM (RRAS)
-
-- IP forwarding enabled.
-- Scheduled task ensures RRAS and BGP config at startup.
-
-### Edge services
-
-- Internal Load Balancer (HTTP probe on port 80).
-- Application Gateway WAF v2 (Detection mode).
-- NAT Gateway (Spoke1 workload subnet).
-- Bastion (Basic SKU by default when enabled).
-
----
-
-## Part 7 - Operations
-
-### Workflow
-
-1. `terraform init`
-2. `terraform plan -out=tfplan`
-3. `terraform apply tfplan`
-4. Validate using the Testing docs.
-
-### State and secrets
-
-- State is local by default. Consider remote state for collaboration.
-- Avoid storing secrets in git; use environment variables or a vault.
-
-### Cost controls
-
-- Disable firewall, VPN, Route Server, and App Gateway when not in use.
-- Use small VM sizes for lab work.
-- Destroy the lab when idle.
-
----
-
-## Part 8 - Validation
-
-Use the Testing pages for detailed validation steps:
-
-- `testing/lab-testing-guide.md`
-- `testing/component-checks.md`
-- `testing/route-validation.md`
-- `testing/dns-validation.md`
-- `testing/test-matrix.md`
-- `testing/troubleshooting.md`
-
-Scenarios provide short, purpose-built lab paths:
-
-- `scenarios/README.md`
-
----
-
-## Appendix - Where to go next
-
-- Architecture: `architecture/overview.md`
-- Core fabric: `architecture/vwan-and-vhub.md`
-- Security: `architecture/firewall-and-routing-intent.md`
-- Reference: `reference/feature-matrix.md`
-- Testing: `testing/component-checks.md`
-- Glossary: `reference/glossary.md`
-
-## Related pages
-
-- [Variables reference](reference/variables.md)
+The [136-row coverage matrix](reference/az-700-alignment.md) is a navigation aid. It explicitly distinguishes implemented configuration, reference material, and design-only topics. [Official exam scope](https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700)

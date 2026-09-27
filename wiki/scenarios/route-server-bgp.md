@@ -1,54 +1,58 @@
-# Scenario: Route Server and NVA (BGP)
+# Route Server: routes are not packets
 
-<p align="center">
-  <img src="../images/scenarios-route-server-bgp.svg" alt="Scenario: Route Server and NVA (BGP) banner" width="1000" />
-</p>
+**Mode:** configuration exercise. **Azure deployment and live verification: NOT RUN.**
 
+## Objectives and configuration
 
-## Goal
+Route Server, BGP, NVA forwarding and topology exclusions.
 
-Validate that Azure Route Server is deployed and that the RRAS NVA peers via BGP.
+Use [profiles/route-server.tfvars.example](../../profiles/route-server.tfvars.example) with the main root. The profile selects Route Server, two RRAS NVAs and explicit NAT. Workload VMs are off. The synthetic 10.100.0.0/16 route has no deployed destination; the two NVAs have no implied interconnecting tunnel.
 
-## Required toggles
+## Step 1 — Review without Azure
 
-- `deploy.route_server = true`
-- `deploy.nvas = true`
+From the repository root:
 
-## Steps
-
-1. Apply the lab and capture outputs.
-2. Confirm Route Server is deployed in Spoke1.
-3. Verify BGP peer entries on the Route Server.
-4. Validate BGP peer status on the NVA.
-
-## Commands
-
-```bash
-# Route Server and peers
-az network routeserver show -g rg-<prefix> -n rs-<prefix> -o table
-az network routeserver peering list -g rg-<prefix> --routeserver rs-<prefix> -o table
-
-# NVA BGP peers
-az vm run-command invoke -g rg-<prefix> -n vm-spoke1-nva \
-  --command-id RunPowerShellScript \
-  --scripts "Get-BgpPeer | Format-Table Name,PeerIPAddress,PeerASN,State,SessionState"
+```powershell
+Get-Content profiles/route-server.tfvars.example
+Get-Content modules/route-server/main.tf
 ```
 
-## Expected results
+Record selected services, external inputs, state owner and predicted packet path. Compare [architecture](../architecture/overview.md) and [objective mapping](../reference/az-700-alignment.md).
 
-- Route Server is in Succeeded state.
-- Peering entries exist for the NVA.
-- NVA shows BGP peers in Connected state.
+## Step 2 — Document a future operation
 
-## Notes
+The [operator checklist](../../docs/operations/deployment-checklist.md) supplies the full input/state/cost sequence. This is a **future authorized operator reference**, not an offline check:
 
-- Replace `<prefix>` with `ctx.project`.
-- Spoke1 is not connected to vHub when Route Server is enabled.
-- Route Server uses ASN 65515; NVA uses ASN 65501.
+```powershell
+$profile = 'route-server'
+terraform plan -var-file=terraform.tfvars -var-file="profiles/$profile.tfvars.example" -out=".local/$profile.tfplan"
+terraform show ".local/$profile.tfplan"
+```
 
-## Related pages
+No plan or apply was run. Resolve actual tenant, subscription, permission, quota, region and dependencies before future use.
 
-- [Route Server and NVA](../architecture/route-server-and-nva.md)
-- [Routing and BGP](../architecture/routing-and-bgp.md)
-- [Route validation](../testing/route-validation.md)
-- [ASNs and IPs](../reference/asn-and-ips.md)
+## Step 3 — Predict evidence
+
+Only after a separately authorized deployment, these outputs can feed the [diagnostic guide](../testing/lab-testing-guide.md):
+
+```powershell
+terraform output -json route_server_virtual_router_ips
+terraform output -raw route_server_virtual_router_asn
+terraform output -raw vm_spoke1_nva_private_ip
+```
+
+Separate guest extension state, both BGP sessions, received routes, effective route and real destination traffic. Spoke1 has no vHub attachment. Record observations separately from predictions. If a client/service is absent, use **NOT RUN**, not PASS.
+
+## Troubleshooting
+
+A failed ping to a synthetic prefix does not diagnose BGP. Inspect guest configuration, forwarding, peer reachability and ASN. See [the symptom table](../testing/troubleshooting.md). Change one variable at a time.
+
+## Cost and cleanup
+
+Route Server, two NVAs, disks and NAT services incur charges. Use [the cost worksheet](../reference/cost-model.md). Future cleanup must use the same root, state, context and profile as creation. Review the [destroy procedure](../../docs/operations/deployment-checklist.md#future-cleanup) and shared-resource ownership. Nothing was deployed by this update.
+
+## Completion artifact
+
+Submit an annotated input file, forward/return path prediction, blank evidence record with expected results, and cleanup ownership list. Never publish state, plans or secrets.
+
+[Scenario index](README.md) · [Book](../book.md)

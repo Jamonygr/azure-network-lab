@@ -1,70 +1,20 @@
-# Network topology
+# Address allocation and service subnets
 
-<p align="center">
-  <img src="../images/architecture-network-topology.svg" alt="Network topology banner" width="1000" />
-</p>
+![Default address allocation](../../docs/diagrams/address-allocation.svg)
 
+*These are the default root CIDRs. The implementation derives subnet prefixes from the selected VNet address space; the diagram is not a discovered Azure inventory.*
 
-This lab uses one vHub, two spokes, and an optional on-premises simulation VNet. Address spaces and subnets are defined in `locals.tf` so the topology can be reviewed without opening the Azure portal.
+| Network | Default | Subnet allocation |
+|---|---|---|
+| vHub | 10.10.0.0/23 | Managed virtual hub; not a customer VNet |
+| Spoke1 | 10.1.0.0/16 | Workload 10.1.1.0/24; AppGw 10.1.2.0/24; Bastion 10.1.3.0/26 |
+| Spoke1 service subnets | Within 10.1.0.0/16 | Private Endpoint 10.1.4.0/24; DNS inbound 10.1.5.0/28; DNS outbound 10.1.5.16/28 |
+| Spoke1 routing | Within 10.1.0.0/16 | LB frontend 10.1.6.0/24; RouteServerSubnet 10.1.7.0/27; NVA 10.1.8.0/24 |
+| Spoke2 | 10.2.0.0/16 | Workload 10.2.1.0/24 |
+| Azure-hosted branch | 192.168.0.0/16 | GatewaySubnet 192.168.0.0/27; Default 192.168.1.0/24; NVA 192.168.2.0/24 |
 
-## Address spaces
+Record a subnet's purpose, delegation, NSG, route table, endpoint policy, and outbound method. Dedicated service subnets must remain dedicated. DNS endpoints delegate to `Microsoft.Network/dnsResolvers`; their names in this repository are conventions. `AzureBastionSubnet`, `GatewaySubnet`, and `RouteServerSubnet` have platform significance.
 
-| Network | CIDR | Purpose |
-|---------|------|---------|
-| Virtual Hub | 10.10.0.0/23 | vWAN regional hub. |
-| Spoke1 | 10.1.0.0/16 | Route Server, DNS resolver, NVA, edge services. |
-| Spoke2 | 10.2.0.0/16 | Standard vHub connected spoke. |
-| OnPrem | 192.168.0.0/16 | Simulated on-premises (optional). |
+An address block being reserved does not enable its paid service. For example, RouteServerSubnet can exist without a Route Server instance. Avoid overlapping root/example/real-branch address spaces if a future design connects them.
 
-## Spoke1 subnet map
-
-| Subnet | CIDR | Notes |
-|--------|------|-------|
-| Workload | 10.1.1.0/24 | Windows workload VMs, ILB backend. |
-| AppGwSubnet | 10.1.2.0/24 | Application Gateway (optional). |
-| AzureBastionSubnet | 10.1.3.0/26 | Bastion host (optional). |
-| PrivateEndpointSubnet | 10.1.4.0/24 | Storage private endpoint; policies disabled. |
-| DnsResolverInbound | 10.1.5.0/28 | DNS resolver inbound endpoint (delegated). |
-| DnsResolverOutbound | 10.1.5.16/28 | DNS resolver outbound endpoint (delegated). |
-| LoadBalancerSubnet | 10.1.6.0/24 | Internal Load Balancer. |
-| RouteServerSubnet | 10.1.7.0/27 | Azure Route Server. |
-| NvaSubnet | 10.1.8.0/24 | RRAS NVA VM (10.1.8.10). |
-
-## Spoke2 subnet map
-
-| Subnet | CIDR | Notes |
-|--------|------|-------|
-| Workload | 10.2.1.0/24 | Workload VM; Storage service endpoint enabled. |
-
-## OnPrem subnet map
-
-| Subnet | CIDR | Notes |
-|--------|------|-------|
-| GatewaySubnet | 192.168.0.0/27 | VPN gateway (optional). |
-| Default | 192.168.1.0/24 | Workload VM. |
-| NvaSubnet | 192.168.2.0/24 | RRAS NVA VM (192.168.2.10). |
-
-## Connectivity matrix (high level)
-
-| From | To | Connectivity | Notes |
-|------|----|--------------|-------|
-| Spoke2 | vHub | Yes (when vWAN enabled) | vHub connection with internet security enabled. |
-| Spoke1 | vHub | Conditional | Disabled when Route Server is enabled. |
-| Spoke1 | Spoke2 | Conditional | Peered when Route Server is enabled. |
-| OnPrem | vHub | Conditional | Requires `deploy.vpn = true`. |
-| OnPrem | Spoke2 | Indirect | Via vHub when VPN enabled. |
-
-## Routing notes
-
-- vHub connections are created with `internet_security_enabled = true`.
-- When Azure Firewall is enabled, routing intent steers Internet and private traffic through the firewall.
-- VNet peering in this lab does not use gateway transit or remote gateways.
-
-## Related pages
-
-- Spokes and peerings: `architecture/spokes-and-peerings.md`
-- Routing deep dive: `architecture/routing-and-bgp.md`
-- Traffic flow examples: `architecture/traffic-flows.md`
-- [vWAN and vHub](vwan-and-vhub.md)
-- [Scenario: Virtual WAN basics](../scenarios/vwan-basics.md)
-
+For custom address inputs, verify every generated subnet and fixed host offset against [locals.tf](../../locals.tf). A valid CIDR string alone does not prove a usable or nonoverlapping topology. The [minimal exercise](../scenarios/minimal-cost.md) asks you to create that ledger.

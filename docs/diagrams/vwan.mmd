@@ -1,0 +1,24 @@
+flowchart LR
+accTitle: Virtual WAN secured-hub profile and optional hybrid branch
+accDescr: Spoke1 and Spoke2 connect to a managed hub. Routing intent directs matching private and Internet traffic through Azure Firewall. An optional Azure-hosted branch reaches the hub through VPN gateways. Route Server is absent from this Spoke1.
+S1["Spoke1<br/>10.1.0.0/16<br/>No Route Server"]:::network <--> C1["Hub connection"]:::config
+S2["Spoke2<br/>10.2.0.0/16"]:::network <--> C2["Hub connection"]:::config
+subgraph VH["Virtual WAN / managed hub — 10.10.0.0/23"]
+H["Hub routing"]:::network
+I["Routing intent<br/>Internet + private categories"]:::config
+F["Azure Firewall Standard<br/>Policy and explicit rules"]:::security
+G["Optional vHub VPN gateway"]:::config
+H --> I --> F
+G <--> H
+end
+C1 & C2 <--> H
+F <-->|"SNAT and return flow"| NET["Public destinations"]:::outside
+B["Azure-hosted branch<br/>192.168.0.0/16"]:::network <--> VG["Optional VNet VPN gateway"]:::config
+VG <-->|"IPsec / BGP"| G
+N["Configuration view<br/>Inspect both directions and logs<br/>Live validation NOT RUN"]:::note
+F ~~~ N
+classDef network fill:#e8f1fa,stroke:#265f8b,color:#10283b;
+classDef config fill:#eef0f5,stroke:#65718a,color:#243047;
+classDef security fill:#e9f3ef,stroke:#397761,color:#153d2d;
+classDef outside fill:#f6e9e8,stroke:#9c5a50,color:#512e29;
+classDef note fill:#fff3dc,stroke:#99751c,color:#45340c;

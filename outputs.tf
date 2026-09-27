@@ -104,7 +104,7 @@ output "storage_account_name" {
 
 output "private_endpoint_storage_ip" {
   description = "Private IP of the storage Private Endpoint"
-  value       = var.deploy.private_endpoint && var.deploy.private_dns_zones ? module.private_endpoint_storage[0].private_ip_address : null
+  value       = var.deploy.private_endpoint ? module.private_endpoint_storage[0].private_ip_address : null
 }
 
 output "route_server_id" {
@@ -132,13 +132,13 @@ output "connection_info" {
   value = {
     bastion_connect = var.deploy.bastion ? "Connect via Azure Portal -> Bastion -> ${module.bastion[0].name}" : "Bastion not deployed"
     vm_admin_user   = var.admin_username
-    spoke1_vms      = var.deploy.spoke1_vms ? [
+    spoke1_vms = var.deploy.spoke1_vms ? [
       module.vm_windows["spoke1-1"].private_ip_address,
       module.vm_windows["spoke1-2"].private_ip_address
     ] : []
-    spoke1_nva      = var.deploy.nvas ? module.vm_nva["spoke1"].private_ip_address : null
-    spoke2_vms      = var.deploy.spoke2_vms ? [module.vm_windows["spoke2-1"].private_ip_address] : []
-    onprem_vms      = var.deploy.onprem_vms && var.deploy.nvas ? [
+    spoke1_nva = var.deploy.nvas ? module.vm_nva["spoke1"].private_ip_address : null
+    spoke2_vms = var.deploy.spoke2_vms ? [module.vm_windows["spoke2-1"].private_ip_address] : []
+    onprem_vms = var.deploy.onprem_vms && var.deploy.nvas ? [
       module.vm_windows["onprem-1"].private_ip_address,
       module.vm_nva["onprem"].private_ip_address
     ] : (var.deploy.onprem_vms ? [module.vm_windows["onprem-1"].private_ip_address] : [])
@@ -147,4 +147,33 @@ output "connection_info" {
       peer_ips = module.route_server[0].virtual_router_ips
     } : null
   }
+}
+
+output "subnet_address_plan" {
+  description = "Effective subnet CIDRs, derived from each VNet's first prefix."
+  value       = { for key, vnet in module.vnet : key => vnet.subnet_prefixes }
+}
+output "subnet_default_outbound_access" {
+  description = "Every subnet explicitly disables implicit outbound access."
+  value       = { for key, vnet in module.vnet : key => vnet.default_outbound_access }
+}
+output "enabled_services" {
+  description = "Resolved feature switches for cost and topology review."
+  value       = var.deploy
+}
+output "connected_hub_vnets" {
+  description = "Spoke1 is deliberately excluded when Route Server is enabled."
+  value       = keys(module.vhub_connection)
+}
+output "dns_forwarding_ruleset_id" {
+  description = "Optional DNS conditional forwarding ruleset."
+  value       = try(module.dns_resolver[0].forwarding_ruleset_id, null)
+}
+output "log_analytics_workspace_id" {
+  description = "Optional workspace ARM ID."
+  value       = try(module.log_analytics[0].id, null)
+}
+output "monitoring_resource_ids" {
+  description = "Lab-owned monitoring children; the existing Network Watcher is not owned by this lab."
+  value       = try({ flow_logs = module.monitoring[0].flow_log_ids, connection_monitor = module.monitoring[0].connection_monitor_id, diagnostics = module.monitoring[0].diagnostic_setting_ids }, null)
 }

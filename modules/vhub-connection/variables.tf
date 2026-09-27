@@ -24,6 +24,8 @@ variable "internet_security_enabled" {
   default     = true
 }
 
+# Retained for callers of this existing module interface; peering/connection resources have no tags.
+# tflint-ignore: terraform_unused_declarations
 variable "ctx" {
   description = "Context object (unused but standardized)."
   type = object({

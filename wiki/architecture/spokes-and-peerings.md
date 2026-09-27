@@ -1,53 +1,9 @@
-# Spokes and peerings
+# Spokes and peering
 
-<p align="center">
-  <img src="../images/architecture-spokes-and-peerings.svg" alt="Spokes and peerings banner" width="1000" />
-</p>
+Spoke1 contains service subnets and optional workloads. Spoke2 provides another network boundary. The branch VNet simulates an on-premises address space inside Azure.
 
+In the vWAN shape, eligible spokes use hub connections. In minimal and Route Server shapes, the root uses direct Spoke1/Spoke2 peering; the minimal branch stays isolated. Check both directions of each peering: access, forwarded traffic, gateway transit and use of remote gateways are independent properties. A bidirectional peering is not proof that learned routes propagate into both VNets.
 
-This page covers the VNets, subnet layout, NSGs, and VNet peerings that define the spoke layer.
+Peering does not create transitive connectivity through an unrelated peer. Write down the required return route and the owner of each hop before drawing a transit arrow. Keep the selected configuration's peer flags visible in the [route worksheet](../testing/route-validation.md).
 
-## Spoke VNets
-
-The lab creates three VNets using `modules/vnet`:
-
-- Spoke1: route server, DNS resolver, NVA, edge services.
-- Spoke2: workload-only spoke connected to the vHub.
-- OnPrem: simulated on-premises network for VPN testing.
-
-Address spaces are defined in `locals.tf` and can be overridden via `terraform.tfvars`.
-
-## Subnet behaviors and special cases
-
-- `PrivateEndpointSubnet` disables private endpoint network policies.
-- DNS resolver subnets include delegation to `Microsoft.Network/dnsResolvers`.
-- Spoke2 Workload subnet includes a Storage service endpoint.
-
-## NSGs
-
-NSGs are defined in `locals.tf` and applied to workload and NVA subnets:
-
-- Spoke1: Workload and NvaSubnet.
-- Spoke2: Workload.
-- OnPrem: Default and NvaSubnet.
-
-Baseline rules allow RDP, HTTP, HTTPS, and ICMP for lab testing.
-
-## VNet peering
-
-Spoke1 and Spoke2 are peered when Route Server is enabled:
-
-- `allow_forwarded_traffic = true`
-- `allow_gateway_transit = false`
-- `use_remote_gateways = false`
-
-This provides direct connectivity when Spoke1 cannot connect to the vHub.
-
-## Related pages
-
-- Subnet map: `architecture/network-topology.md`
-- Routing constraints: `architecture/limitations-and-tradeoffs.md`
-- [Traffic flows](traffic-flows.md)
-- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
-- [Networking modules](../modules/networking.md)
-
+[Topology diagrams](overview.md) distinguish these shapes. The [AVNM example](../../examples/avnm/README.md) uses its own VNets and static membership; it does not take over these root peerings.

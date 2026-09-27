@@ -1,38 +1,18 @@
-# Lab scenarios
+# Exercises and configuration paths
 
-<p align="center">
-  <img src="../images/scenarios-readme.svg" alt="Lab scenarios banner" width="1000" />
-</p>
+Every exercise states configuration, review steps, future commands, evidence, troubleshooting, cost and cleanup. **Azure activity: NOT RUN.** Source review and synthetic reasoning need no cloud credentials.
 
+| Exercise | Root profile |
+|---|---|
+| [Minimal address and security footprint](minimal-cost.md) | `minimal` |
+| [Virtual WAN connection ownership](vwan-basics.md) | `vwan-secured` |
+| [Secured hub: path before policy](secured-hub-firewall.md) | `vwan-secured` |
+| [Hybrid VPN: Azure-hosted branch](vpn-bgp.md) | `hybrid-vpn` |
+| [Route Server: routes are not packets](route-server-bgp.md) | `route-server` |
+| [Private Blob access and DNS](private-endpoints-dns.md) | `private-dns` |
+| [Regional application delivery](edge-services.md) | `application-delivery` |
+| [Legacy combined topology review](full-lab.md) | `legacy-combined` |
+| [Independent examples](independent-examples.md) | Seven separate roots |
+| [Design exercises](design-exercises.md) | External/provider-dependent worksheets |
 
-Scenarios are short, focused lab paths. Each one lists the feature toggles you need, the expected outcomes, and a small set of validation commands.
-
-## How to use scenarios
-
-1. Set the `deploy` flags for the scenario.
-2. `terraform plan` and `terraform apply`.
-3. Run the validation steps in the scenario.
-
-## Scenario list
-
-- [Virtual WAN basics](vwan-basics.md)
-- [Secured hub and firewall](secured-hub-firewall.md)
-- [VPN and BGP](vpn-bgp.md)
-- [Route Server and NVA (BGP)](route-server-bgp.md)
-- [Private endpoints and DNS](private-endpoints-dns.md)
-- [Edge services (LB, NAT, App Gateway, Bastion)](edge-services.md)
-- [Minimal cost lab](minimal-cost.md)
-- [Full lab build](full-lab.md)
-
-## Tips
-
-- Use the testing matrix to see which tests apply: `../testing/test-matrix.md`.
-- For cross-component troubleshooting, use `../testing/troubleshooting.md`.
-- Map scenarios to AZ-700 domains: `../reference/az-700-alignment.md`.
-
-## Related pages
-
-- [Architecture overview](../architecture/overview.md)
-- [Lab testing guide](../testing/lab-testing-guide.md)
-- [Variables reference](../reference/variables.md)
-- [Feature matrix](../reference/feature-matrix.md)
+Read [state isolation](../reference/state-and-secrets.md) before selecting another profile. Two profiles do not merge their deploy objects: Terraform uses the last value. The [book](../book.md) gives the five-domain course sequence.

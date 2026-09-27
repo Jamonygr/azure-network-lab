@@ -1,0 +1,23 @@
+# Source configuration only; no deployment has been performed.
+# Overlay on a local context/subscription file; secrets come from TF_VAR_* only.
+# High-cost compatibility profile. Spoke1 cannot connect to vHub while Route Server is present.
+deploy = {
+  spoke_peering = false
+  vwan = true
+  vhub_firewall = true
+  vpn = true
+  route_server = true
+  dns_resolver = true
+  private_dns_zones = true
+  bastion = false
+  application_gateway = true
+  load_balancer = true
+  nat_gateway = true
+  private_endpoint = true
+  spoke1_vms = true
+  spoke2_vms = true
+  onprem_vms = true
+  nvas = true
+  log_analytics = true
+  monitoring = false
+}

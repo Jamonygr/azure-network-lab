@@ -1,46 +1,17 @@
-# Modules overview
+# Module reference and teaching boundaries
 
-<p align="center">
-  <img src="../images/modules-readme.svg" alt="Modules overview banner" width="1000" />
-</p>
+The root wires modules; a module's presence does not mean every profile enables it. Read the selected profile alongside [main.tf](../../main.tf) and [locals.tf](../../locals.tf).
 
+| Group | Guide |
+|---|---|
+| Network topology, routing and DNS | [Networking](networking.md) |
+| Windows guests and RRAS | [Compute](compute.md) |
+| Policy, administration and private access | [Security](security.md) |
+| Logs and probes | [Monitoring](monitoring.md) |
+| Storage and service endpoints | [PaaS](paas.md) |
 
-Modules are thin, single-responsibility building blocks. The root module controls feature flags and wiring; modules focus on a specific resource group of Azure services.
+[Generated module index](../../reference/README.md) contains exact Terraform interfaces. Teaching guides explain relationships, prerequisites, evidence and limitations. Update both when a contract changes.
 
-## Conventions
+Independent examples own their own roots and resources rather than being automatically invoked by this root. [Example guide](../scenarios/independent-examples.md)
 
-- All modules accept a shared `ctx` object (project, location, tags).
-- Provider configuration lives in the root (`providers.tf`).
-- Naming is passed in from the root; modules do not invent names.
-- Optional resources are enabled with `count` or filtered `for_each` maps.
-
-## Module map
-
-| Category | Modules | Notes |
-|----------|---------|-------|
-| Foundation | `resource-group`, `tags`, `log-analytics` | Core lab scaffolding. |
-| WAN/Hub | `vwan`, `vhub`, `vhub-connection`, `vhub-firewall`, `vhub-vpn-gateway` | vWAN fabric and hub services. |
-| VNets | `vnet`, `vnet-peering`, `nsg` | Spoke VNets, peering, and NSGs. |
-| Hybrid | `vpn-gateway`, `vpn-site`, `vpn-connection`, `local-network-gateway` | S2S VPN and on-prem simulation. |
-| Routing | `route-server` | BGP with NVA peers. |
-| DNS | `dns-private-resolver`, `private-dns-zone` | Private DNS services. |
-| Edge | `nat-gateway`, `load-balancer`, `application-gateway`, `bastion` | Per-spoke edge services. |
-| Compute | `vm-windows`, `vm-windows-nva` | Workload VMs and RRAS NVA. |
-| PaaS | `storage-account`, `private-endpoint` | Storage + private endpoint. |
-
-## Design notes
-
-- Modules are intentionally small so you can read the Azure resource definitions directly.
-- All modules return the key IDs and IPs needed by the root module.
-- The root module enforces ordering via `depends_on` only where necessary.
-
-## Next
-
-- Networking details: `modules/networking.md`
-- Compute details: `modules/compute.md`
-- Security details: `modules/security.md`
-
-## Related pages
-
-- [Architecture overview](../architecture/overview.md)
-- [Terraform patterns](../reference/terraform-patterns.md)
+Local schema and mock validation does not prove VM extensions, BGP sessions, certificate retrieval, backend health or Azure quota. These are NOT RUN until a future operator records live evidence.

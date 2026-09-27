@@ -1,42 +1,20 @@
-# Traffic flows
+# Forward paths, return paths and egress
 
-<p align="center">
-  <img src="../images/architecture-traffic-flows.svg" alt="Traffic flows banner" width="1000" />
-</p>
+![Three independent traffic-path cases](../../docs/diagrams/traffic-egress.svg)
 
+*Each row is a separate configuration case. Return arrows are deliberate. The diagram is not a claim that all three paths exist in one profile.*
 
-This page describes the most common paths in the lab. All flows depend on the `deploy` toggles and whether Route Server is enabled.
+For every proposed flow, answer:
 
-## Flow summary
+1. Which address did DNS return?
+2. Which next hop is selected for that destination?
+3. Which device translates source addresses?
+4. Which policy evaluates the packet?
+5. How does the response find the translated or original source?
+6. Which log and timestamp could prove the path?
 
-| Scenario | Path | Notes |
-|----------|------|-------|
-| Spoke2 -> Internet | Spoke2 -> vHub -> Firewall -> Internet | Requires vWAN and Firewall; routing intent steers traffic. |
-| Spoke2 -> OnPrem | Spoke2 -> vHub -> VPN -> OnPrem | Requires `deploy.vpn = true`. |
-| Spoke1 -> Spoke2 (Route Server on) | Spoke1 -> VNet peering -> Spoke2 | Spoke1 is not connected to vHub in this mode. |
-| Spoke1 -> Spoke2 (Route Server off) | Spoke1 -> vHub -> Spoke2 | Both spokes connect to vHub when allowed. |
-| Spoke1 NVA -> Route Server | Within Spoke1 | BGP peering inside the VNet. |
-| Storage private endpoint access | VM -> DNS -> Private IP -> Storage | Requires private DNS zones and private endpoint. |
+The minimal profile does not provide a general Internet egress appliance. The Route Server/application profiles select explicit NAT for their compute paths. Spoke1 associates workload/NVA subnets; enabled branch or eligible Spoke2 compute uses separate NAT services. The secured hub uses its own Firewall path. Do not assume a NAT association wins over a UDR pointing to a virtual appliance.
 
-## Notes on conditional behavior
+The default outbound access platform change reinforces explicit egress design: new VNets created through post-31-March-2026 APIs default private; it is not a blanket disconnection of every existing VNet. [Microsoft guidance](https://learn.microsoft.com/en-us/azure/virtual-network/ip-services/default-outbound-access)
 
-- When `deploy.route_server = true`, Spoke1 is isolated from the vHub.
-- When `deploy.vwan = false`, vHub connections are not created.
-- When `deploy.vhub_firewall = false`, Internet traffic is not inspected by firewall.
-
-## Suggested tests
-
-- Validate vHub connections: `az network vhub connection list`.
-- Validate VPN status: `az network vpn-connection show`.
-- Validate private DNS resolution: `Resolve-DnsName <storage>.blob.core.windows.net`.
-
-## Related pages
-
-- Core fabric: `architecture/vwan-and-vhub.md`
-- Routing details: `architecture/routing-and-bgp.md`
-- Private DNS details: `architecture/dns-and-private-link.md`
-- [Network topology](network-topology.md)
-- [Firewall and routing intent](firewall-and-routing-intent.md)
-- [Scenario: Secured hub and firewall](../scenarios/secured-hub-firewall.md)
-- [Component checks](../testing/component-checks.md)
-
+The [route checks](../testing/route-validation.md) and [ports table](../reference/ports-and-protocols.md) describe future evidence. No routes or traffic were queried for this update.
